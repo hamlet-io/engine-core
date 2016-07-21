@@ -1,5 +1,8 @@
 package au.com.gosource.gsgen;
 
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -19,9 +22,10 @@ public class RunFreeMarker {
     private static String templateFileName = null;
     private static String outputFileName = null;
     private static Map<String, Object> input = null;
+    private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_23;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_25;
 
     public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException
     {
@@ -30,6 +34,10 @@ public class RunFreeMarker {
         cfg.setLocale(Locale.UK);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         input = new HashMap<String, Object>();
+        rawInput = new HashMap<String, Object>();
+
+        FileTemplateLoader ftl1 = null;
+        FileTemplateLoader ftl2 = new FileTemplateLoader(new File("/"));
         for(int i = 0; i < args.length; i++)
         {
             if (args[i].startsWith("-"))
@@ -82,6 +90,31 @@ public class RunFreeMarker {
                     }
 
                 }
+                else if("r".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
+                {
+                    try {
+                        for (int j = i+1; j < args.length; j++)
+                        {
+                            if (args[j].startsWith("-"))
+                            {
+                                i = j -1;
+                                break;
+                            }
+                            else
+                            {
+                                String[] vars = StringUtils.split(args[j],"=");
+                                rawInput.put(vars[0],vars.length>1?vars[1]:"");
+                                i = j;
+                            }
+                        }
+
+                    }
+                    catch (ArrayIndexOutOfBoundsException e)
+                    {
+                        throw new RunFreeMarkerException("No value for option -r found");
+                    }
+
+                }
                 else if("o".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
                 {
                     try
@@ -109,7 +142,7 @@ public class RunFreeMarker {
                         throw new ArrayIndexOutOfBoundsException("");
                     }
                     else
-                        cfg.setDirectoryForTemplateLoading(new File(args[i+1]));
+                        ftl1 = new FileTemplateLoader(new File(args[i+1]));
                     i++;
                 }
                 catch (ArrayIndexOutOfBoundsException e)
@@ -128,6 +161,8 @@ public class RunFreeMarker {
                 throw new RunFreeMarkerException("unknown option - " + args[i] + ". Allowed options - -o, -v, -i");
             }
         }
+
+        cfg.setTemplateLoader(new MultiTemplateLoader(new TemplateLoader[]{ftl1, ftl2}));
 
         if(!StringUtils.isBlank(templateFileName))
         {
@@ -175,6 +210,12 @@ public class RunFreeMarker {
             }
         }
 
+        for (String key:rawInput.keySet())
+        {
+            System.out.println("Raw Variable - " + key + ", value - " + rawInput.get(key));
+        }
+        input.putAll(rawInput);
+
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
         if(outputFileName!=null)
         {
@@ -202,8 +243,9 @@ public class RunFreeMarker {
         try {
             mainAttribs = readProperties();
             version = mainAttribs.getValue("Implementation-Version");
-        } catch (IOException e) {
-            // Ignore
+        } catch (Exception e) {
+            System.out.println("Unable to parse manifest file.");
+            e.printStackTrace();
         }
 
         System.out.println("\n" +
@@ -212,6 +254,7 @@ public class RunFreeMarker {
                 "Params:");
         System.out.println("-i  : template file.");
         System.out.println("-v  : variables for freemarker template.");
+        System.out.println("-r  : raw variables for freemarker template.");
         System.out.println("-o  : output file.");
         System.out.println("-d  : templates directory.");
         System.out.println("-?  or --version            	 : Display this help.");
