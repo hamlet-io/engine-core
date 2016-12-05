@@ -1,4 +1,4 @@
-package au.com.gosource.gsgen;
+package io.codeontap.freemarkerwrapper;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;

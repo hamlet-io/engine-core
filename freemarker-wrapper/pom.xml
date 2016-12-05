@@ -23,7 +23,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>au.com.gosource.gsgen.RunFreeMarker</mainClass>
+                            <mainClass>io.codeontap.freemarkerwrapper.RunFreeMarker</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
