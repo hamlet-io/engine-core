@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -215,6 +216,8 @@ public class RunFreeMarker {
             System.out.println("Raw Variable - " + key + ", value - " + rawInput.get(key));
         }
         input.putAll(rawInput);
+
+        input.put("random", new Random());
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
         if(outputFileName!=null)

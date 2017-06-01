@@ -6,7 +6,7 @@
 
     <artifactId>freemarker-wrapper</artifactId>
     <groupId>au.com.codeontap</groupId>
-    <version>1.2</version>
+    <version>1.3</version>
     <build>
         <plugins>
             <plugin>
