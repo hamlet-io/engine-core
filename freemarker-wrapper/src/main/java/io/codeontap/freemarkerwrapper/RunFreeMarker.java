@@ -26,7 +26,7 @@ public class RunFreeMarker {
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_25;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_27;
 
     public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException
     {
