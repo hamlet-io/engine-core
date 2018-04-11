@@ -8,10 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -218,6 +215,7 @@ public class RunFreeMarker {
         input.putAll(rawInput);
 
         input.put("random", new Random());
+        input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
         if(outputFileName!=null)
