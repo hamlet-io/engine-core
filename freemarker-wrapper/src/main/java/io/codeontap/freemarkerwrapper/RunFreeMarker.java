@@ -4,6 +4,7 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.*;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -22,11 +23,24 @@ public class RunFreeMarker {
     private static Map<String, Object> input = null;
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
+    private static String separator = " ";
+
+    final static Options options = new Options();
 
     private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
 
-    public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException
-    {
+    public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException, ParseException {
+
+        Attributes mainAttribs = null;
+        String version = "";
+        try {
+            mainAttribs = readProperties();
+            version = mainAttribs.getValue("Implementation-Version");
+        } catch (Exception e) {
+            System.out.println("Unable to parse manifest file.");
+            e.printStackTrace();
+        }
+
         cfg = new Configuration(freemarkerVersion);
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.UK);
@@ -34,133 +48,82 @@ public class RunFreeMarker {
         input = new HashMap<String, Object>();
         rawInput = new HashMap<String, Object>();
 
-        FileTemplateLoader ftl1 = null;
-        FileTemplateLoader ftl2 = new FileTemplateLoader(new File("/"));
-        for(int i = 0; i < args.length; i++)
-        {
-            if (args[i].startsWith("-"))
-            {
-                if("--version".equalsIgnoreCase(args[i]) || "-?".equalsIgnoreCase(args[i])){
-                    echoHelp();
-                    return;
-                }
+        Option directoryOption = new Option("d", true, "templates directories. Multiple options are allowed. Multiple values are allowed.");
+        Option directorySeparatorOption = new Option("s", true, "templates directories separator. Default is space.");
+        Option versionOption = new Option("?", "version",false, "display this help.");
+        Option inputOption = new Option("i", true, "template file.");
+        Option variablesOption = new Option("v", true, "variables for freemarker template.");
+        Option rawVariablesOption = new Option("r", true, "raw variables for freemarker template.");
+        Option outputOption = new Option("o", true, "output file.");
 
-                if("i".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
-                {
-                    try{
-                        if (StringUtils.startsWith(args[i+1],"-"))
-                        {
-                            throw new ArrayIndexOutOfBoundsException("");
-                        }
-                        else
-                        {
-                            templateFileName = args[i+1];
-                            i++;
-                        }
-                    }
-                    catch (ArrayIndexOutOfBoundsException e)
-                    {
-                        throw new RunFreeMarkerException("No value for option -i found");
-                    }
-                }
-                else if("v".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
-                {
-                    try {
-                        for (int j = i+1; j < args.length; j++)
-                        {
-                            if (args[j].startsWith("-"))
-                            {
-                                i = j -1;
-                                break;
-                            }
-                            else
-                            {
-                                String[] vars = StringUtils.split(args[j],"=");
-                                input.put(vars[0],vars.length>1?vars[1]:"");
-                                i = j;
-                            }
-                        }
+        options.addOption(directoryOption);
+        options.addOption(directorySeparatorOption);
+        options.addOption(versionOption);
+        options.addOption(inputOption);
+        options.addOption(variablesOption);
+        options.addOption(rawVariablesOption);
+        options.addOption(outputOption);
 
-                    }
-                    catch (ArrayIndexOutOfBoundsException e)
-                    {
-                        throw new RunFreeMarkerException("No value for option -v found");
-                    }
+        HelpFormatter formatter = new HelpFormatter();
 
-                }
-                else if("r".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
-                {
-                    try {
-                        for (int j = i+1; j < args.length; j++)
-                        {
-                            if (args[j].startsWith("-"))
-                            {
-                                i = j -1;
-                                break;
-                            }
-                            else
-                            {
-                                String[] vars = StringUtils.split(args[j],"=");
-                                rawInput.put(vars[0],vars.length>1?vars[1]:"");
-                                i = j;
-                            }
-                        }
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse( options, args);
+        FileTemplateLoader[] templateLoaders = null;
 
-                    }
-                    catch (ArrayIndexOutOfBoundsException e)
-                    {
-                        throw new RunFreeMarkerException("No value for option -r found");
-                    }
+        if(cmd.hasOption(versionOption.getOpt())){
+            System.out.println(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
+            formatter.printHelp(String.format("java -jar freemarker-wrapper-%s.jar", version), options);
+            return;
+        }
 
-                }
-                else if("o".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
-                {
-                    try
-                    {
-                        if (StringUtils.startsWith(args[i+1],"-"))
-                        {
-                            throw new ArrayIndexOutOfBoundsException("");
-                        }
-                        else
-                            outputFileName = args[i+1];
-                        i++;
-                    }
-                    catch (ArrayIndexOutOfBoundsException e)
-                    {
-                        throw new RunFreeMarkerException("No value for option -o found");
-                    }
+        if(cmd.hasOption(directorySeparatorOption.getOpt())){
+            separator = cmd.getOptionValue(directorySeparatorOption.getOpt());
+        }
 
-                }
-            else if("d".equalsIgnoreCase(StringUtils.substringAfter(args[i], "-")))
-            {
-                try
-                {
-                    if (StringUtils.startsWith(args[i+1],"-"))
-                    {
-                        throw new ArrayIndexOutOfBoundsException("");
-                    }
-                    else
-                        ftl1 = new FileTemplateLoader(new File(args[i+1]));
-                    i++;
-                }
-                catch (ArrayIndexOutOfBoundsException e)
-                {
-                    throw new RunFreeMarkerException("No value for option -d found");
-                }
+        if(cmd.hasOption(inputOption.getOpt())){
+            templateFileName = cmd.getOptionValue(inputOption.getOpt());
+        }
 
-            }
-                else
-                {
-                    throw new RunFreeMarkerException("unknown option - " + args[i]);
-                }
-            }
-            else
-            {
-                throw new RunFreeMarkerException("unknown option - " + args[i] + ". Allowed options - -i, -v, -r, -o, -d");
+        if (cmd.hasOption(variablesOption.getOpt())){
+            for (String variable:cmd.getOptionValues(variablesOption.getOpt())) {
+                String[] pair = variable.split("=");
+                input.put(pair[0],pair.length>1?pair[1]:"");
             }
         }
 
-        cfg.setTemplateLoader(new MultiTemplateLoader(new TemplateLoader[]{ftl1, ftl2}));
+        if (cmd.hasOption(rawVariablesOption.getOpt())){
+            for (String variable:cmd.getOptionValues(rawVariablesOption.getOpt())) {
+                String[] pair = variable.split("=");
+                rawInput.put(pair[0],pair.length>1?pair[1]:"");
+            }
+        }
+
+        if (cmd.hasOption(outputOption.getOpt())){
+            outputFileName = cmd.getOptionValue(outputOption.getOpt());
+        }
+
+        if (cmd.hasOption(directoryOption.getOpt())) {
+            String[] optionValues = cmd.getOptionValues(directoryOption.getOpt());
+            int length = 0;
+            for (String value:optionValues){
+                String[] splittedvalue = value.split(separator);
+                length += splittedvalue.length;
+            }
+            templateLoaders = new FileTemplateLoader[length+1];
+            int i=0;
+            for (String value:optionValues){
+                for(String directory:value.split(separator)){
+                    templateLoaders[i] = new FileTemplateLoader(new File(directory));
+                    i++;
+                }
+            }
+            templateLoaders[i] = new FileTemplateLoader(new File("/"));
+            System.out.println("Templates directories in the order as they will be searched:");
+            for(FileTemplateLoader fileTemplateLoader : templateLoaders){
+                System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
+            }
+            cfg.setTemplateLoader(new MultiTemplateLoader(templateLoaders));
+        }
 
         if(!StringUtils.isBlank(templateFileName))
         {
@@ -177,9 +140,6 @@ public class RunFreeMarker {
             String template = c.readLine("Enter your template: ");
             FileWriter fileWriter = new FileWriter(templateFileName);
             PrintWriter printWriter = new PrintWriter(fileWriter);
-/*
-            printWriter.print(template);
-*/
             String[] lines = StringUtils.split(template, "\\n");
             for(int i = 0; i<lines.length; i++)
             {
@@ -230,36 +190,7 @@ public class RunFreeMarker {
             freeMarkerTemplate.process(input, consoleWriter);
             System.out.println("--------------------------- OUTPUT ---------------------------");
             System.out.write(byteArrayOutputStream.toByteArray());
-            /*InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-            System.out.print(inputStream.read());*/
         }
-    }
-
-    /**
-     * Commandline help output
-     */
-    public static void echoHelp() {
-        Attributes mainAttribs = null;
-        String version = "";
-        try {
-            mainAttribs = readProperties();
-            version = mainAttribs.getValue("Implementation-Version");
-        } catch (Exception e) {
-            System.out.println("Unable to parse manifest file.");
-            e.printStackTrace();
-        }
-
-        System.out.println("\n" +
-                "GSGEN v." + version+ "\n\n"+
-                "Freemarker version - " +  freemarkerVersion + " \n" +
-                "Params:");
-        System.out.println("-i        : template file.");
-        System.out.println("-v        : variables for freemarker template.");
-        System.out.println("-r        : raw variables for freemarker template.");
-        System.out.println("-o        : output file.");
-        System.out.println("-d        : templates directory.");
-        System.out.println("-?");
-        System.out.println("--version : display this help.");
     }
 
     public static Attributes readProperties() throws IOException{
