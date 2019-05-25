@@ -23,7 +23,7 @@ public class RunFreeMarker {
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_27;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
 
     public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException
     {
@@ -156,7 +156,7 @@ public class RunFreeMarker {
             }
             else
             {
-                throw new RunFreeMarkerException("unknown option - " + args[i] + ". Allowed options - -o, -v, -i");
+                throw new RunFreeMarkerException("unknown option - " + args[i] + ". Allowed options - -i, -v, -r, -o, -d");
             }
         }
 
@@ -253,12 +253,13 @@ public class RunFreeMarker {
                 "GSGEN v." + version+ "\n\n"+
                 "Freemarker version - " +  freemarkerVersion + " \n" +
                 "Params:");
-        System.out.println("-i  : template file.");
-        System.out.println("-v  : variables for freemarker template.");
-        System.out.println("-r  : raw variables for freemarker template.");
-        System.out.println("-o  : output file.");
-        System.out.println("-d  : templates directory.");
-        System.out.println("-?  or --version            	 : Display this help.");
+        System.out.println("-i        : template file.");
+        System.out.println("-v        : variables for freemarker template.");
+        System.out.println("-r        : raw variables for freemarker template.");
+        System.out.println("-o        : output file.");
+        System.out.println("-d        : templates directory.");
+        System.out.println("-?");
+        System.out.println("--version : display this help.");
     }
 
     public static Attributes readProperties() throws IOException{
