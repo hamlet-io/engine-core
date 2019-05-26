@@ -49,15 +49,18 @@ public class RunFreeMarker {
         rawInput = new HashMap<String, Object>();
 
         Option directoryOption = new Option("d", true, "templates directories. Multiple options are allowed. Multiple values are allowed.");
-        Option directorySeparatorOption = new Option("s", true, "templates directories separator. Default is space.");
+        directoryOption.setArgs(Option.UNLIMITED_VALUES);
         Option versionOption = new Option("?", "version",false, "display this help.");
         Option inputOption = new Option("i", true, "template file.");
         Option variablesOption = new Option("v", true, "variables for freemarker template.");
+        variablesOption.setArgs(Option.UNLIMITED_VALUES);
+        variablesOption.setValueSeparator('=');
         Option rawVariablesOption = new Option("r", true, "raw variables for freemarker template.");
+        rawVariablesOption.setArgs(Option.UNLIMITED_VALUES);
+        rawVariablesOption.setValueSeparator('=');
         Option outputOption = new Option("o", true, "output file.");
 
         options.addOption(directoryOption);
-        options.addOption(directorySeparatorOption);
         options.addOption(versionOption);
         options.addOption(inputOption);
         options.addOption(variablesOption);
@@ -76,25 +79,23 @@ public class RunFreeMarker {
             return;
         }
 
-        if(cmd.hasOption(directorySeparatorOption.getOpt())){
-            separator = cmd.getOptionValue(directorySeparatorOption.getOpt());
-        }
-
         if(cmd.hasOption(inputOption.getOpt())){
             templateFileName = cmd.getOptionValue(inputOption.getOpt());
         }
 
         if (cmd.hasOption(variablesOption.getOpt())){
-            for (String variable:cmd.getOptionValues(variablesOption.getOpt())) {
-                String[] pair = variable.split("=");
-                input.put(pair[0],pair.length>1?pair[1]:"");
+            String[] values = cmd.getOptionValues(variablesOption.getOpt());
+            for (int i=0; i<values.length; i++){
+                input.put(values[i], values[i+1]);
+                i++;
             }
         }
 
         if (cmd.hasOption(rawVariablesOption.getOpt())){
-            for (String variable:cmd.getOptionValues(rawVariablesOption.getOpt())) {
-                String[] pair = variable.split("=");
-                rawInput.put(pair[0],pair.length>1?pair[1]:"");
+            String[] values = cmd.getOptionValues(rawVariablesOption.getOpt());
+            for (int i=0; i<values.length; i++){
+                rawInput.put(values[i], values[i+1]);
+                i++;
             }
         }
 
