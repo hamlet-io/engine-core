@@ -50,6 +50,7 @@ public class RunFreeMarker {
 
         Option directoryOption = new Option("d", true, "templates directories. Multiple options are allowed. Multiple values are allowed.");
         directoryOption.setArgs(Option.UNLIMITED_VALUES);
+        directoryOption.setValueSeparator(';');
         Option versionOption = new Option("?", "version",false, "display this help.");
         Option inputOption = new Option("i", true, "template file.");
         Option variablesOption = new Option("v", true, "variables for freemarker template.");
@@ -105,18 +106,11 @@ public class RunFreeMarker {
 
         if (cmd.hasOption(directoryOption.getOpt())) {
             String[] optionValues = cmd.getOptionValues(directoryOption.getOpt());
-            int length = 0;
-            for (String value:optionValues){
-                String[] splittedvalue = value.split(separator);
-                length += splittedvalue.length;
-            }
-            templateLoaders = new FileTemplateLoader[length+1];
+            templateLoaders = new FileTemplateLoader[optionValues.length];
             int i=0;
-            for (String value:optionValues){
-                for(String directory:value.split(separator)){
-                    templateLoaders[i] = new FileTemplateLoader(new File(directory));
-                    i++;
-                }
+            for (String directory:optionValues){
+                templateLoaders[i] = new FileTemplateLoader(new File(directory));
+                i++;
             }
             templateLoaders[i] = new FileTemplateLoader(new File("/"));
             System.out.println("Templates directories in the order as they will be searched:");
