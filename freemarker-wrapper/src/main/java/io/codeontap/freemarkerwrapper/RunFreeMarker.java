@@ -57,6 +57,7 @@ public class RunFreeMarker {
         variablesOption.setValueSeparator('=');
         Option rawVariablesOption = new Option("r", true, "raw variables for freemarker template.");
         rawVariablesOption.setArgs(Option.UNLIMITED_VALUES);
+        rawVariablesOption.setValueSeparator('=');
         Option outputOption = new Option("o", true, "output file.");
 
         options.addOption(directoryOption);
