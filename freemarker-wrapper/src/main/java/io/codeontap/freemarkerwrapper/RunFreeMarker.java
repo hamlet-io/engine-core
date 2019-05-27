@@ -106,7 +106,7 @@ public class RunFreeMarker {
 
         if (cmd.hasOption(directoryOption.getOpt())) {
             String[] optionValues = cmd.getOptionValues(directoryOption.getOpt());
-            templateLoaders = new FileTemplateLoader[optionValues.length];
+            templateLoaders = new FileTemplateLoader[optionValues.length+1];
             int i=0;
             for (String directory:optionValues){
                 templateLoaders[i] = new FileTemplateLoader(new File(directory));
