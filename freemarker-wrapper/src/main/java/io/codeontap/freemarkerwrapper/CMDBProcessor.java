@@ -4,16 +4,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import javax.json.*;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 public class CMDBProcessor {
     public Map<String, JsonObject> getFileTree (String lookupDir, Map<String,String> CMDBs, List<String> CMDBNames, String baseCMDB, String startingPath, List<String> regex,
@@ -64,6 +60,7 @@ public class CMDBProcessor {
         Map<String, String> cmdbFileSystem = new TreeMap<>();
 
         cmdbFileSystem.put(baseCMDB, "/");
+        cmdbFileSystem.put(baseCMDB, "");
         /*for (String CMDB: CMDBs.keySet()) {*/
             JsonReader jsonReader = null;
             try {
@@ -91,7 +88,7 @@ public class CMDBProcessor {
                             // base path of the base CMDB?
                             cmdbFileSystem.put(baseCMDB, "/".concat(basePath));
                     }*/
-                    if(!basePath.startsWith("/")) basePath = "/".concat(basePath);
+                    /*if(!basePath.startsWith("/")) basePath = "/".concat(basePath);*/
                     cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
                 }
             }
@@ -111,7 +108,7 @@ public class CMDBProcessor {
 
         for (String CMDBName: CMDBNames) {
             Path startingDir = Paths.get(CMDBs.get(CMDBName));
-            FileFinder.Finder finder = new FileFinder.Finder("*.*", ignoreDotDirectories, ignoreDotFiles);
+            FileFinder.Finder finder = new FileFinder.Finder(regex.get(0), ignoreDotDirectories, ignoreDotFiles);
             try{
                 Files.walkFileTree(startingDir, finder);
             } catch (IOException e){
@@ -120,7 +117,7 @@ public class CMDBProcessor {
             for(Path file:finder.done()){
                 String path = file.toString();
                 String cmdbBasePath = cmdbFileSystem.get(CMDBName);
-                String cmdbPath = path.replaceFirst(startingDir.toString(), cmdbBasePath).replaceFirst("//","/");
+                String cmdbPath = /*StringUtils.replaceOnce(*/StringUtils.replaceOnce(path, startingDir.toString(), cmdbBasePath)/*,"//","/")*/;
                 cmdbFilesMapping.put(cmdbPath, path);
                 cmdbPhysicalFilesMapping.put(path, CMDBName);
             }
@@ -129,10 +126,15 @@ public class CMDBProcessor {
 /*
         for (String CMDB: CMDBNames) {
 */
+/*
             if(!startingPath.startsWith("/")) startingPath = "/".concat(startingPath);
+*/
 
 
             for (String pattern : regex) {
+                for(String file:cmdbFilesMapping.keySet()) {
+                    files.put(file, Paths.get(cmdbFilesMapping.get(file)));
+                }
                 /*FileFinder.Finder finder = new FileFinder.Finder(pattern, ignoreDotDirectories, ignoreDotFiles);
                 try{
                     Files.walkFileTree(startingDir, finder);
@@ -140,14 +142,24 @@ public class CMDBProcessor {
                     e.printStackTrace();
                 }
                 files.addAll(finder.done());*/
+/*
                 Pattern p = Pattern.compile(new StringBuilder().append("^")
                         .append(startingPath).append(".*").append(pattern).append("$").toString());
                 for(String file:cmdbFilesMapping.keySet()){
                     Matcher m = p.matcher(file);
-                    if(m.matches()){
+                    */
+/*if(m.matches()){
                         files.put(file, Paths.get(cmdbFilesMapping.get(file)));
-                    }
+                    }*//*
+
+                    files.put(file, Paths.get(cmdbFilesMapping.get(file)));
                 }
+
+*/
+
+                /*FileFilter filter = new RegexFileFilter(pattern);
+                File directory = new File(".");
+                File[] filteredFiles = directory.listFiles(filter);*/
 
             }
             for (String key : files.keySet()) {
