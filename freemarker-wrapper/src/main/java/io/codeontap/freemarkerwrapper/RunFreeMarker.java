@@ -50,15 +50,30 @@ public class RunFreeMarker {
         Option directoryOption = new Option("d", true, "templates directories. Multiple options are allowed. Multiple values are allowed.");
         directoryOption.setArgs(Option.UNLIMITED_VALUES);
         directoryOption.setValueSeparator(';');
+
         Option versionOption = new Option("?", "version",false, "display this help.");
+
         Option inputOption = new Option("i", true, "template file.");
+
         Option variablesOption = new Option("v", true, "variables for freemarker template.");
         variablesOption.setArgs(Option.UNLIMITED_VALUES);
         variablesOption.setValueSeparator('=');
+
         Option rawVariablesOption = new Option("r", true, "raw variables for freemarker template.");
         rawVariablesOption.setArgs(Option.UNLIMITED_VALUES);
         rawVariablesOption.setValueSeparator('=');
+
         Option outputOption = new Option("o", true, "output file.");
+
+        Option cmdbPathMappingOption = new Option("g", true, "the mapping of CMDB names to physical paths.");
+        cmdbPathMappingOption.setRequired(true);
+        cmdbPathMappingOption.setArgs(Option.UNLIMITED_VALUES);
+        cmdbPathMappingOption.setValueSeparator('=');
+
+        Option cmdbNamesOption = new Option("c", true, "the CMDBs to be processed.");
+        cmdbNamesOption.setArgs(Option.UNLIMITED_VALUES);
+
+        Option cmdbBaseNameOption = new Option("b", true, "the base CMDB name.");
 
         options.addOption(directoryOption);
         options.addOption(versionOption);
@@ -66,6 +81,9 @@ public class RunFreeMarker {
         options.addOption(variablesOption);
         options.addOption(rawVariablesOption);
         options.addOption(outputOption);
+        options.addOption(cmdbPathMappingOption);
+        options.addOption(cmdbNamesOption);
+        options.addOption(cmdbBaseNameOption);
 
         HelpFormatter formatter = new HelpFormatter();
 
@@ -73,51 +91,102 @@ public class RunFreeMarker {
         CommandLine cmd = parser.parse( options, args);
         FileTemplateLoader[] templateLoaders = null;
 
+
         if(cmd.hasOption(versionOption.getOpt())){
             System.out.println(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
             formatter.printHelp(String.format("java -jar freemarker-wrapper-%s.jar", version), options);
             return;
         }
 
-        if(cmd.hasOption(inputOption.getOpt())){
-            templateFileName = cmd.getOptionValue(inputOption.getOpt());
+        input.put("baseCMDB", "tenant");
+
+        List<String> CMDBNames = new ArrayList<>();
+
+        Iterator<Option> optionIterator = cmd.iterator();
+        List<FileTemplateLoader> loaderList = new ArrayList<>();
+        Map<String, String> cmdbPathMapping = new TreeMap<>();
+
+
+        while (optionIterator.hasNext()){
+            Option option = optionIterator.next();
+/*
+            System.out.println(option.getOpt());
+            for(String value: option.getValues()){
+                System.out.print(value+ " ");
+            }
+            System.out.println("");
+*/
+
+            String opt = option.getOpt();
+            String[] values = option.getValues();
+            if(opt.equals(inputOption.getOpt())){
+                templateFileName = option.getValue();
+            }
+
+            else if (opt.equals(variablesOption.getOpt())){
+                for (int i=0; i<values.length; i++){
+                    input.put(values[i], values[i+1]);
+                    i++;
+                }
+            }
+
+            else if (opt.equals(rawVariablesOption.getOpt())){
+                for (int i=0; i<values.length; i++){
+                    rawInput.put(values[i], values[i+1]);
+                    i++;
+                }
+            }
+
+            else if (opt.equals(outputOption.getOpt())){
+                outputFileName = option.getValue();
+            }
+
+            else if (opt.equals(directoryOption.getOpt())) {
+                for (String directory:values){
+                    loaderList.add(new FileTemplateLoader(new File(directory)));
+                }
+            }
+            else if (opt.equals(cmdbPathMappingOption.getOpt()))
+            {
+                if(values.length==1){
+                    input.put("lookupDir",values[0]);
+                }
+                else for (int i=0; i<values.length; i++){
+                    cmdbPathMapping.put(values[i], values[i+1]);
+                    i++;
+                }
+            }
+            else if (opt.equals(cmdbNamesOption.getOpt()))
+            {
+                CMDBNames.addAll(Arrays.asList(values));
+            }
+            else if (opt.equals(cmdbBaseNameOption.getOpt()))
+            {
+                input.put("baseCMDB", option.getValue());
+            }
+
         }
 
-        if (cmd.hasOption(variablesOption.getOpt())){
-            String[] values = cmd.getOptionValues(variablesOption.getOpt());
-            for (int i=0; i<values.length; i++){
-                input.put(values[i], values[i+1]);
-                i++;
-            }
-        }
+        input.put("cmdbPathMapping", cmdbPathMapping);
+        input.put("CMDBNames", CMDBNames);
 
-        if (cmd.hasOption(rawVariablesOption.getOpt())){
-            String[] values = cmd.getOptionValues(rawVariablesOption.getOpt());
-            for (int i=0; i<values.length; i++){
-                rawInput.put(values[i], values[i+1]);
-                i++;
-            }
-        }
+        loaderList.add(new FileTemplateLoader(new File("/")));
+        /*templateLoaders = new FileTemplateLoader[loaderSet.size()];*/
 
-        if (cmd.hasOption(outputOption.getOpt())){
-            outputFileName = cmd.getOptionValue(outputOption.getOpt());
+        System.out.println("Templates directories in the order as they will be searched:");
+        int templateLoaderIndex = 0;
+        for(FileTemplateLoader fileTemplateLoader : loaderList){
+/*
+            templateLoaders[templateLoaderIndex] = fileTemplateLoader;
+*/
+            System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
         }
+        cfg.setTemplateLoader(new MultiTemplateLoader(loaderList.toArray(new FileTemplateLoader[]{})));
 
-        if (cmd.hasOption(directoryOption.getOpt())) {
-            String[] optionValues = cmd.getOptionValues(directoryOption.getOpt());
-            templateLoaders = new FileTemplateLoader[optionValues.length+1];
-            int i=0;
-            for (String directory:optionValues){
-                templateLoaders[i] = new FileTemplateLoader(new File(directory));
-                i++;
-            }
-            templateLoaders[i] = new FileTemplateLoader(new File("/"));
-            System.out.println("Templates directories in the order as they will be searched:");
-            for(FileTemplateLoader fileTemplateLoader : templateLoaders){
-                System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
-            }
-            cfg.setTemplateLoader(new MultiTemplateLoader(templateLoaders));
-        }
+
+
+
+
 
         if(!StringUtils.isBlank(templateFileName))
         {
@@ -170,6 +239,8 @@ public class RunFreeMarker {
 
         input.put("random", new Random());
         input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
+        input.put("getFileTree", new GetFileTreeMethod());
+
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
         if(outputFileName!=null)
