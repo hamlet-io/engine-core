@@ -99,6 +99,7 @@ public class RunFreeMarker {
         }
 
         input.put("baseCMDB", "tenant");
+        input.put("lookupDir","");
 
         List<String> CMDBNames = new ArrayList<>();
 
