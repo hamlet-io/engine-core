@@ -44,6 +44,7 @@ public class RunFreeMarker {
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.UK);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        cfg.setObjectWrapper(new JsonStringWrapper(cfg.getIncompatibleImprovements()));
         input = new HashMap<String, Object>();
         rawInput = new HashMap<String, Object>();
 

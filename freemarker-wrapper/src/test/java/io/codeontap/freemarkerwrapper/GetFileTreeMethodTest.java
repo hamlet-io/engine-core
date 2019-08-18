@@ -23,6 +23,7 @@ public class GetFileTreeMethodTest {
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.UK);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        cfg.setObjectWrapper(new JsonStringWrapper(cfg.getIncompatibleImprovements()));
     }
 
     @Test

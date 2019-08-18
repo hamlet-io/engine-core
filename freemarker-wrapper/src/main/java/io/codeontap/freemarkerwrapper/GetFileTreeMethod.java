@@ -58,7 +58,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }
-        //return subnetSet;
-        return new SimpleHash(result, null);
+
+        return new SimpleHash(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
     }
 }
