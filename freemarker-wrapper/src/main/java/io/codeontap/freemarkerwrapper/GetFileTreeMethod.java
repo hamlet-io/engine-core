@@ -4,7 +4,6 @@ import freemarker.core.Environment;
 import freemarker.template.*;
 
 import javax.json.JsonObject;
-import java.io.IOException;
 import java.util.*;
 
 public class GetFileTreeMethod implements TemplateMethodModelEx {
