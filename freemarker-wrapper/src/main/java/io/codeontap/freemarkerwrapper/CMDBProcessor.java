@@ -55,16 +55,6 @@ public class CMDBProcessor {
             }
         }
         /**
-         * when CMDB names are not limited via -c option, use all detected
-         */
-        if (CMDBNames.isEmpty()) {
-            CMDBNames.addAll(CMDBs.keySet());
-        } else {
-            //making sure that the base CMDB is in the list even if it was not mentioned in the -c option
-            CMDBNames.add(baseCMDB);
-        }
-
-        /**
          * when -b option is not specified, the default base CMDB is tenant
          * doesn't expect CMDBPrefixes to be used
          * TODO: add a catch code
@@ -76,13 +66,17 @@ public class CMDBProcessor {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"", baseCMDB, CMDBs));
         }
 
-        Map<String, String> cmdbFileSystem = buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix);;
+        Map<String, String> cmdbFileSystem = buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames);
+        //if a layer for base CMDB was not defined consider "/" as a default basePath for it
+        if (!cmdbFileSystem.containsKey(baseCMDB)){
+            cmdbFileSystem.put(baseCMDB, "/");
+        }
 
         Map<String, String> cmdbFilesMapping = new TreeMap<>();
         Map<String, String> cmdbPhysicalFilesMapping = new TreeMap<>();
 
         for (String pattern : regex) {
-            for (String CMDBName : CMDBNames) {
+            for (String CMDBName : cmdbFileSystem.keySet()) {
                 if (!CMDBs.containsKey(CMDBName)) {
                     throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
                 }
@@ -166,12 +160,11 @@ public class CMDBProcessor {
      * @param useCMDBPrefix
      * @return
      */
-    private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix){
+    private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix, final Set<String> CMDBNames){
         Map<String, String> cmdbFileSystem = new TreeMap<>();
         JsonReader jsonReader = null;
-        for (String path : CMDBs.values()) {
             try {
-                Path CMDBPath = readJSONFileUsingDirectoryStream(path, ".cmdb");
+                Path CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
                 jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
                 JsonObject jsonObject = jsonReader.readObject();
                 if (jsonObject.containsKey("Layers")) {
@@ -179,27 +172,21 @@ public class CMDBProcessor {
                     for (int i = 0; i < layers.size(); i++) {
                         JsonObject layer = layers.getJsonObject(i);
                         String layerName = layer.getString("Name");
+                        //if -c option was applied, check if a CMDB layer should be included into the CMDB file system
+                        if(!CMDBNames.isEmpty() && !CMDBNames.contains(layerName))
+                            continue;
                         String basePath = layer.getString("BasePath");
                         String CMDBPrefix = useCMDBPrefix?CMDBPath.getParent().getParent().getFileName().toString().concat("_"):"";
                         cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
+                        if(!baseCMDB.equalsIgnoreCase(layerName)) {
+                            cmdbFileSystem.putAll(buildCMDBFileSystem(layerName, CMDBs, useCMDBPrefix, CMDBNames));
+                        }
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        }
-
-        //If a layer is not defined in any of the detected .cmdb files, adding a default basePath "/"
-        if(!cmdbFileSystem.containsKey(baseCMDB)){
-            cmdbFileSystem.put(baseCMDB, "/");
-        }
-        //If a layer is not defined in any of the detected .cmdb files, adding a default basePath "/"
-        for (String CMDB : CMDBs.keySet()) {
-            if(!cmdbFileSystem.containsKey(CMDB)){
-                cmdbFileSystem.put(CMDB, "/");
-            }
-        }
         return cmdbFileSystem;
     }
 }
