@@ -3,6 +3,7 @@ package io.codeontap.freemarkerwrapper;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.core.Environment;
 import freemarker.template.*;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
@@ -32,14 +33,46 @@ public class GetFileTreeMethodTest {
             input = new HashMap<String, Object>();
             input.put("getFileTree", new GetFileTreeMethod());
             Map<String,String> cmdbPathMapping = new HashMap();
-            cmdbPathMapping.put("accounts", "/work/gs-psma/cot/accounts");
-            cmdbPathMapping.put("almv2", "/work/gs-psma/cot/almv2");
-            cmdbPathMapping.put("api", "/work/gs-psma/cot/api");
+            cmdbPathMapping.put("accounts", "/work/gs-psma/cot/accounts/");
+            cmdbPathMapping.put("almv2", "/work/gs-psma/cot/almv2/");
+            cmdbPathMapping.put("api", "/work/gs-psma/cot/api/");
             input.put("cmdbPathMapping", cmdbPathMapping);
             /*input.put("lookupDir", "/work/gs-psma/cot");*/
             input.put("lookupDir", "");
             input.put("CMDBNames", Arrays.asList(new String[]{"accounts", "almv2", "api"}));
             input.put("baseCMDB", "accounts");
+            cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+            Template freeMarkerTemplate = cfg.getTemplate("/work/codeontap/gen3-freemarker-wrapper/file.ftl");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+            Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+            freeMarkerTemplate.process(input, consoleWriter);
+            System.out.println("--------------------------- OUTPUT ---------------------------");
+            System.out.write(byteArrayOutputStream.toByteArray());
+
+        } catch (IOException | TemplateException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void testCMDBPathMapping2(){
+        try {
+            input = new HashMap<String, Object>();
+            input.put("getFileTree", new GetFileTreeMethod());
+            Map<String,String> cmdbPathMapping = new HashMap();
+            cmdbPathMapping.put("benchmarking", "/work/gs-fin/benchmarking-cmdb/");
+            cmdbPathMapping.put("ecommerce", "/work/envris/cot/ecommerce/");
+            cmdbPathMapping.put("accounts", "/work/envris/cot/accounts/");
+
+            input.put("cmdbPathMapping", cmdbPathMapping);
+            /*input.put("lookupDir", "/work/gs-psma/cot");*/
+            input.put("lookupDir", "");
+            input.put("CMDBNames", Arrays.asList(new String[]{"accounts"}));
+            input.put("baseCMDB", "benchmarking");
             cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
             Template freeMarkerTemplate = cfg.getTemplate("/work/codeontap/gen3-freemarker-wrapper/file.ftl");
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -112,6 +145,7 @@ public class GetFileTreeMethodTest {
     }
 
     @Test
+    @Ignore
     public void testCMDBPathMappingWithCMDBPrefixes(){
         try {
             input = new HashMap<String, Object>();
@@ -143,6 +177,7 @@ public class GetFileTreeMethodTest {
     }
 
     @Test
+    @Ignore
     public void testCMDBPrefixes(){
         try {
             input = new HashMap<String, Object>();

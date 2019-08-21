@@ -15,11 +15,12 @@ import java.util.*;
  * TODO: add staringPath processing
  */
 public class CMDBProcessor {
-    public Map<String, JsonObject> getFileTree(String lookupDir, Map<String, String> CMDBs, List<String> CMDBNames, String baseCMDB, String startingPath, List<String> regex,
+    public Map<String, JsonObject> getFileTree(String lookupDir, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regex,
                                                boolean ignoreDotDirectories, boolean ignoreDotFiles, boolean includeCMDBInformation, boolean useCMDBPrefix) throws RunFreeMarkerException {
         Map<String, JsonObject> output = new HashMap<String, JsonObject>();
         Map<String, Path> files = new TreeMap<>();
-
+        Set<String> CMDBNames = new TreeSet<>();
+        CMDBNames.addAll(CMDBNamesList);
         /*
          * When -g value is provided as a single path.
          * The second form identifies a directory whose subtree is scanned for .cmdb files,
@@ -57,9 +58,10 @@ public class CMDBProcessor {
          * when CMDB names are not limited via -c option, use all detected
          */
         if (CMDBNames.isEmpty()) {
-            //TODO: use Set instead of list
-            CMDBNames = new ArrayList<>();
             CMDBNames.addAll(CMDBs.keySet());
+        } else {
+            //making sure that the base CMDB is in the list even if it was not mentioned in the -c option
+            CMDBNames.add(baseCMDB);
         }
 
         /**
@@ -102,13 +104,14 @@ public class CMDBProcessor {
         }
 
         for (String file : cmdbFilesMapping.keySet()) {
-            files.put(file, Paths.get(cmdbFilesMapping.get(file)));
+            //TODO: fix the double slashes properly
+            files.put(StringUtils.replace(file, "//", "/"), Paths.get(cmdbFilesMapping.get(file)));
         }
 
         for (String key : files.keySet()) {
             Path file = files.get(key);
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
-            jsonObjectBuilder.add("Path", key);
+            jsonObjectBuilder.add("Path", StringUtils.substringBeforeLast(key, file.getFileName().toString()));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
@@ -122,7 +125,7 @@ public class CMDBProcessor {
                 jsonObjectBuilder.add("CMDB",
                         Json.createObjectBuilder().add("Name", cmdbName).add("BasePath", cmdbBasePath).add("File", file.toString()).build());
             }
-            output.put(file.toString(), jsonObjectBuilder.build());
+            output.put(key, jsonObjectBuilder.build());
         }
         return output;
     }
@@ -165,7 +168,6 @@ public class CMDBProcessor {
      */
     private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix){
         Map<String, String> cmdbFileSystem = new TreeMap<>();
-        cmdbFileSystem.put(baseCMDB, "");
         JsonReader jsonReader = null;
         for (String path : CMDBs.values()) {
             try {
@@ -186,6 +188,17 @@ public class CMDBProcessor {
                 e.printStackTrace();
             }
 
+        }
+
+        //If a layer is not defined in any of the detected .cmdb files, adding a default basePath "/"
+        if(!cmdbFileSystem.containsKey(baseCMDB)){
+            cmdbFileSystem.put(baseCMDB, "/");
+        }
+        //If a layer is not defined in any of the detected .cmdb files, adding a default basePath "/"
+        for (String CMDB : CMDBs.keySet()) {
+            if(!cmdbFileSystem.containsKey(CMDB)){
+                cmdbFileSystem.put(CMDB, "/");
+            }
         }
         return cmdbFileSystem;
     }
