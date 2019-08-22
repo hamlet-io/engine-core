@@ -66,11 +66,7 @@ public class CMDBProcessor {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"", baseCMDB, CMDBs));
         }
 
-        Map<String, String> cmdbFileSystem = buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames);
-        //if a layer for base CMDB was not defined consider "/" as a default basePath for it
-        if (!cmdbFileSystem.containsKey(baseCMDB)){
-            cmdbFileSystem.put(baseCMDB, "/");
-        }
+        Map<String, String> cmdbFileSystem = processsCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames));
 
         Map<String, String> cmdbFilesMapping = new TreeMap<>();
         Map<String, String> cmdbPhysicalFilesMapping = new TreeMap<>();
@@ -80,6 +76,7 @@ public class CMDBProcessor {
                 if (!CMDBs.containsKey(CMDBName)) {
                     throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
                 }
+                // get physical starting dir for the current CMDB
                 Path startingDir = Paths.get(CMDBs.get(CMDBName));
                 FileFinder.Finder finder = new FileFinder.Finder(pattern, ignoreDotDirectories, ignoreDotFiles);
                 try {
@@ -105,7 +102,8 @@ public class CMDBProcessor {
         for (String key : files.keySet()) {
             Path file = files.get(key);
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
-            jsonObjectBuilder.add("Path", StringUtils.substringBeforeLast(key, file.getFileName().toString()));
+            String path = StringUtils.substringBeforeLast(key, file.getFileName().toString());
+            jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
@@ -119,7 +117,7 @@ public class CMDBProcessor {
                 jsonObjectBuilder.add("CMDB",
                         Json.createObjectBuilder().add("Name", cmdbName).add("BasePath", cmdbBasePath).add("File", file.toString()).build());
             }
-            output.put(key, jsonObjectBuilder.build());
+            output.put(forceUnixStyle(key), jsonObjectBuilder.build());
         }
         return output;
     }
@@ -163,30 +161,47 @@ public class CMDBProcessor {
     private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix, final Set<String> CMDBNames){
         Map<String, String> cmdbFileSystem = new TreeMap<>();
         JsonReader jsonReader = null;
-            try {
-                Path CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
-                jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
-                JsonObject jsonObject = jsonReader.readObject();
-                if (jsonObject.containsKey("Layers")) {
-                    JsonArray layers = jsonObject.getJsonArray("Layers").asJsonArray();
-                    for (int i = 0; i < layers.size(); i++) {
-                        JsonObject layer = layers.getJsonObject(i);
-                        String layerName = layer.getString("Name");
-                        //if -c option was applied, check if a CMDB layer should be included into the CMDB file system
-                        if(!CMDBNames.isEmpty() && !CMDBNames.contains(layerName))
-                            continue;
-                        String basePath = layer.getString("BasePath");
-                        String CMDBPrefix = useCMDBPrefix?CMDBPath.getParent().getParent().getFileName().toString().concat("_"):"";
-                        cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
-                        if(!baseCMDB.equalsIgnoreCase(layerName)) {
-                            cmdbFileSystem.putAll(buildCMDBFileSystem(layerName, CMDBs, useCMDBPrefix, CMDBNames));
-                        }
+        try {
+            Path CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+            jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
+            JsonObject jsonObject = jsonReader.readObject();
+            if (jsonObject.containsKey("Layers")) {
+                JsonArray layers = jsonObject.getJsonArray("Layers").asJsonArray();
+                for (int i = 0; i < layers.size(); i++) {
+                    JsonObject layer = layers.getJsonObject(i);
+                    String layerName = layer.getString("Name");
+                    //if -c option was applied, check if a CMDB layer should be included into the CMDB file system
+                    if(!CMDBNames.isEmpty() && !CMDBNames.contains(layerName))
+                        continue;
+                    String basePath = layer.getString("BasePath");
+                    String CMDBPrefix = useCMDBPrefix?CMDBPath.getParent().getParent().getFileName().toString().concat("_"):"";
+                    cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
+                    if(!baseCMDB.equalsIgnoreCase(layerName)) {
+                        cmdbFileSystem.putAll(buildCMDBFileSystem(layerName, CMDBs, useCMDBPrefix, CMDBNames));
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return cmdbFileSystem;
+    }
+
+    private Map<String, String> processsCMDBFileSystem(String baseCMDBName, final Map<String, String> cmdbFileSystem){
+        Map<String, String> result = new TreeMap<>();
+        String root = cmdbFileSystem.containsKey(baseCMDBName)?cmdbFileSystem.get(baseCMDBName):"/";
+        for (String CMDBName:cmdbFileSystem.keySet()){
+            String basePath = cmdbFileSystem.get(CMDBName);
+            if(!basePath.startsWith("/")){
+                basePath = root.concat(basePath);
+            }
+            result.put(CMDBName, basePath);
+        }
+        result.put(baseCMDBName, root);
+        return result;
+    }
+
+    private String forceUnixStyle(final String path){
+        return StringUtils.replaceEachRepeatedly(path, new String[]{"\\", "//"}, new String[]{"/", "/"});
     }
 }
