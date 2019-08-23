@@ -113,11 +113,11 @@ public class CMDBProcessor {
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
-            /*try (FileInputStream inputStream = new FileInputStream(file.toString())) {
+            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                 jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
             } catch (IOException e) {
                 e.printStackTrace();
-            }*/
+            }
             if (includeCMDBInformation) {
                 String cmdbName = cmdbPhysicalFilesMapping.get(file.toString());
                 String cmdbBasePath = cmdbFileSystem.get(cmdbName);
