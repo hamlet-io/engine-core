@@ -10,12 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * TODO: add staringPath processing
  */
 public class CMDBProcessor {
-    public Map<String, JsonObject> getFileTree(String lookupDir, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regex,
+    public Map<String, JsonObject> getFileTree(String lookupDir, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
                                                boolean ignoreDotDirectories, boolean ignoreDotFiles, boolean includeCMDBInformation, boolean useCMDBPrefix) throws RunFreeMarkerException {
         Map<String, JsonObject> output = new HashMap<String, JsonObject>();
         Map<String, Path> files = new TreeMap<>();
@@ -71,32 +73,37 @@ public class CMDBProcessor {
         Map<String, String> cmdbFilesMapping = new TreeMap<>();
         Map<String, String> cmdbPhysicalFilesMapping = new TreeMap<>();
 
-        for (String pattern : regex) {
-            for (String CMDBName : cmdbFileSystem.keySet()) {
-                if (!CMDBs.containsKey(CMDBName)) {
-                    throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
-                }
-                // get physical starting dir for the current CMDB
-                Path startingDir = Paths.get(CMDBs.get(CMDBName));
-                FileFinder.Finder finder = new FileFinder.Finder(pattern, ignoreDotDirectories, ignoreDotFiles);
-                try {
-                    Files.walkFileTree(startingDir, finder);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                for (Path file : finder.done()) {
-                    String path = file.toString();
-                    String cmdbBasePath = cmdbFileSystem.get(CMDBName);
-                    String cmdbPath = StringUtils.replaceOnce(path, startingDir.toString(), cmdbBasePath);
-                    cmdbFilesMapping.put(cmdbPath, path);
-                    cmdbPhysicalFilesMapping.put(path, CMDBName);
+        List<String> refinedRegexList = refineRegexList(startingPath, regexLsit);
+
+        for (String CMDBName : cmdbFileSystem.keySet()) {
+            if (!CMDBs.containsKey(CMDBName)) {
+                throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
+            }
+            // get physical starting dir for the current CMDB
+            Path startingDir = Paths.get(CMDBs.get(CMDBName));
+            FileFinder.Finder finder = new FileFinder.Finder("*.*", ignoreDotDirectories, ignoreDotFiles);
+            try {
+                Files.walkFileTree(startingDir, finder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (Path file : finder.done()) {
+                String path = file.toString();
+                String cmdbBasePath = cmdbFileSystem.get(CMDBName);
+                String cmdbPath = forceUnixStyle(StringUtils.replaceOnce(path, startingDir.toString(), cmdbBasePath));
+                for (String regex:refinedRegexList){
+                    Pattern p = Pattern.compile(regex);
+                    Matcher m = p.matcher(cmdbPath);
+                    if(m.matches()){
+                        cmdbFilesMapping.put(cmdbPath, path);
+                        cmdbPhysicalFilesMapping.put(path, CMDBName);
+                    }
                 }
             }
         }
 
         for (String file : cmdbFilesMapping.keySet()) {
-            //TODO: fix the double slashes properly
-            files.put(StringUtils.replace(file, "//", "/"), Paths.get(cmdbFilesMapping.get(file)));
+            files.put(forceUnixStyle(file), Paths.get(cmdbFilesMapping.get(file)));
         }
 
         for (String key : files.keySet()) {
@@ -106,11 +113,11 @@ public class CMDBProcessor {
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
-            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
+            /*try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                 jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
             if (includeCMDBInformation) {
                 String cmdbName = cmdbPhysicalFilesMapping.get(file.toString());
                 String cmdbBasePath = cmdbFileSystem.get(cmdbName);
@@ -202,6 +209,27 @@ public class CMDBProcessor {
     }
 
     private String forceUnixStyle(final String path){
-        return StringUtils.replaceEachRepeatedly(path, new String[]{"\\", "//"}, new String[]{"/", "/"});
+        String result = StringUtils.replaceEachRepeatedly(path, new String[]{"\\", "//"}, new String[]{"/", "/"});
+        if(result.endsWith("/"))
+            result = StringUtils.substringBeforeLast(result,"/");
+        return result;
+    }
+
+    private List<String> refineRegexList(final String startingDir, final List<String> regexList){
+        List<String> result = new ArrayList<>();
+
+        for (String regex:regexList){
+            regex = StringUtils.replace(regex, "*", ".*");
+            if(regex.startsWith("^")){
+            } else {
+                regex = startingDir.concat(".*".concat(regex));
+            }
+            if(regex.endsWith("$")){
+            } else {
+                regex = regex.concat(".*");
+            }
+            result.add(regex);
+        }
+        return result;
     }
 }
