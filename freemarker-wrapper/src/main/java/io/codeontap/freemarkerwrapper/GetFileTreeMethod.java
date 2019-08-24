@@ -17,7 +17,13 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMapping")).getWrappedObject();
         String baseCMDB = ((SimpleScalar) Environment.getCurrentEnvironment().getGlobalVariable("baseCMDB")).getAsString();
-        String startingPath = args.get(0).toString();
+        Object startingPathObj = args.get(0);
+        String startingPath = null;
+        if (startingPathObj instanceof SimpleScalar){
+            startingPath = startingPathObj.toString();
+        }else if (startingPathObj instanceof JsonStringAdapter){
+            startingPath = ((JsonStringAdapter) startingPathObj).getAsString();
+        }
         TemplateHashModelEx options = (TemplateHashModelEx)args.get(1);
         TemplateModelIterator iterator = options.keys().iterator();
         SimpleSequence regexSequence = null;

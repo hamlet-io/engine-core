@@ -219,10 +219,9 @@ public class CMDBProcessor {
         List<String> result = new ArrayList<>();
 
         for (String regex:regexList){
-            regex = StringUtils.replace(regex, "*", ".*");
             if(regex.startsWith("^")){
             } else {
-                regex = startingDir.concat(".*".concat(regex));
+                regex = startingDir.concat("/.*".concat(regex));
             }
             if(regex.endsWith("$")){
             } else {
