@@ -221,7 +221,7 @@ public class CMDBProcessor {
         for (String regex:regexList){
             if(regex.startsWith("^")){
             } else {
-                regex = startingDir.concat("/.*".concat(regex));
+                regex = getStartingDir(startingDir).concat(".*".concat(regex));
             }
             if(regex.endsWith("$")){
             } else {
@@ -230,5 +230,13 @@ public class CMDBProcessor {
             result.add(regex);
         }
         return result;
+    }
+
+    private String getStartingDir(final String startingDir){
+        if(StringUtils.endsWith(startingDir, "/")){
+            return startingDir;
+        } else {
+            return startingDir.concat("/");
+        }
     }
 }

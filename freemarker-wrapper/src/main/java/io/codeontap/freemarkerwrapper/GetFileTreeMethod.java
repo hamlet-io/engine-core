@@ -26,7 +26,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         }
         TemplateHashModelEx options = (TemplateHashModelEx)args.get(1);
         TemplateModelIterator iterator = options.keys().iterator();
-        SimpleSequence regexSequence = null;
+        TemplateSequenceModel regexSequence = null;
         boolean ignoreDotDirectories = Boolean.TRUE;
         boolean ignoreDotFiles = Boolean.TRUE;
         boolean includeCMDBInformation = Boolean.FALSE;
@@ -34,7 +34,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
-                regexSequence = (SimpleSequence)options.get("Regex");
+                regexSequence = (TemplateSequenceModel)options.get("Regex");
             } else if ("IgnoreDotDirectories".equalsIgnoreCase(key.toString())){
                 ignoreDotDirectories = ((TemplateBooleanModel) options.get("IgnoreDotDirectories")).getAsBoolean();
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
