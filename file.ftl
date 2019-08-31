@@ -1,14 +1,15 @@
 [#ftl]
 
+[#assign regex=["product.json"]]
 [#assign candidates =
   getFileTree(
     "/products",
     {
-      "Regex" : ["product.json"],
-      "IgnoreDotDirectories" : false,
-      "IgnoreDotFiles" : false,
+        "Regex" : regex,
+        "IgnoreDotDirectories" : false,
+        "IgnoreDotFiles" : false,
 	"IncludeCMDBInformation" : true	,
-"UseCMDBPrefix" : true
+	"UseCMDBPrefix" : false
     }
   ) ]
 
@@ -18,6 +19,8 @@ ${filename}
 	${detail}
 	[#if detail == "CMDB"]
 	${value.Name} -  - ${value.BasePath} - ${value.File}
+	[#elseif detail == "ContentsAsJSON"]
+	${value.Product.Id}
 	[#else]
 	${value}
 	[/#if]

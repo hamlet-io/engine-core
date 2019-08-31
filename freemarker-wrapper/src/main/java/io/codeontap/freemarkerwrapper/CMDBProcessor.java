@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import javax.json.*;
+import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -117,6 +118,16 @@ public class CMDBProcessor {
                 jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
+                JsonReader reader = Json.createReader(inputStream);
+                JsonObject jsonObject = reader.readObject();
+                reader.close();
+                jsonObjectBuilder.add("ContentsAsJSON", jsonObject);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JsonParsingException e) {
+                System.out.println(String.format("The content of file %s is not a valid JSON and won't be parsed.", forceUnixStyle(key)));
             }
             if (includeCMDBInformation) {
                 String cmdbName = cmdbPhysicalFilesMapping.get(file.toString());
