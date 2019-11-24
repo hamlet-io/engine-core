@@ -2,7 +2,6 @@ package io.codeontap.freemarkerwrapper;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
-import freemarker.cache.TemplateLoader;
 import freemarker.template.*;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
