@@ -6,13 +6,17 @@ import inet.ipaddr.IPAddressString;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 
 /**
  * Created by Kseniya on 10/04/2018.
  */
 public class IPAddressGetSubNetworksMethod implements TemplateMethodModelEx {
-
+    /**
+     * IPAddress function
+     * @param args ipAddress and prefixLength
+     * @return a json array string, ?eval needs to be called in a template
+     * @throws TemplateModelException
+     */
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 2) {
             throw new TemplateModelException("Wrong arguments");
@@ -21,12 +25,15 @@ public class IPAddressGetSubNetworksMethod implements TemplateMethodModelEx {
         String prefixLength = args.get(1).toString();
         IPAddress subnet = new IPAddressString(ipAddress).getAddress();
         IPAddress newSubnets = subnet.setPrefixLength(Integer.valueOf(prefixLength), false);
-        TreeSet<IPAddress> subnetSet = new TreeSet<IPAddress>();
+        String result = "[";
         Iterator<? extends IPAddress> iterator = newSubnets.prefixBlockIterator();
         while (iterator.hasNext()) {
-            subnetSet.add(iterator.next());
+            result = result.concat("\"".concat(iterator.next().toCanonicalString()).concat("\""));
+            if(iterator.hasNext())
+                result = result.concat(",");
+            else
+                result = result.concat("]");
         }
-        //return subnetSet;
-        return new SimpleSequence(subnetSet, null);
+        return new SimpleScalar(result);
     }
 }
