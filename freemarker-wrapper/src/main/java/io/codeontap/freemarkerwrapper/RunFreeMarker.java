@@ -67,7 +67,7 @@ public class RunFreeMarker {
         Option outputOption = new Option("o", true, "output file.");
 
         Option cmdbPathMappingOption = new Option("g", true, "the mapping of CMDB names to physical paths.");
-        cmdbPathMappingOption.setRequired(true);
+        cmdbPathMappingOption.setRequired(false);
         cmdbPathMappingOption.setArgs(Option.UNLIMITED_VALUES);
         cmdbPathMappingOption.setValueSeparator('=');
 
