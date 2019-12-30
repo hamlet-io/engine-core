@@ -105,7 +105,7 @@ public class RunFreeMarker {
 
         Iterator<Option> optionIterator = cmd.iterator();
         List<FileTemplateLoader> loaderList = new ArrayList<>();
-        Map<String, String> cmdbPathMapping = new TreeMap<>();
+        Map<String, String> cmdbPathMappings = new TreeMap<>();
         List<String> lookupDirs = new ArrayList<>();
 
 
@@ -153,7 +153,7 @@ public class RunFreeMarker {
                 for (int i=0; i<values.length; i++){
                     if(StringUtils.contains(values[i], "=")){
                         String[] pair = values[i].split("=");
-                        cmdbPathMapping.put(pair[0], pair[1]);
+                        cmdbPathMappings.put(pair[0], pair[1]);
                     } else {
                         lookupDirs.add(values[i]);
                     }
@@ -171,7 +171,7 @@ public class RunFreeMarker {
         }
 
         input.put("lookupDirs", lookupDirs);
-        input.put("cmdbPathMapping", cmdbPathMapping);
+        input.put("cmdbPathMappings", cmdbPathMappings);
         input.put("CMDBNames", CMDBNames);
 
         loaderList.add(new FileTemplateLoader(new File("/")));
