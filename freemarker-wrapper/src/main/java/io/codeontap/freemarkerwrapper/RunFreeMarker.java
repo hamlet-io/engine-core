@@ -244,6 +244,7 @@ public class RunFreeMarker {
         input.put("random", new Random());
         input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
         input.put("getFileTree", new GetFileTreeMethod());
+        input.put("getCMDBs", new GetCMDBsMethod());
 
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);

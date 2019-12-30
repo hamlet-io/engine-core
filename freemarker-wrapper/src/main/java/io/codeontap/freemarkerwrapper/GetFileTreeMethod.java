@@ -27,6 +27,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         TemplateHashModelEx options = (TemplateHashModelEx)args.get(1);
         TemplateModelIterator iterator = options.keys().iterator();
         TemplateSequenceModel regexSequence = null;
+        SimpleScalar regexScalar = null;
         boolean ignoreDotDirectories = Boolean.TRUE;
         boolean ignoreDotFiles = Boolean.TRUE;
         boolean includeCMDBInformation = Boolean.FALSE;
@@ -34,7 +35,11 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
-                regexSequence = (TemplateSequenceModel)options.get("Regex");
+                Object regex = options.get("Regex");
+                if(regex instanceof TemplateSequenceModel)
+                    regexSequence = (TemplateSequenceModel)regex;
+                else if(regex instanceof SimpleScalar)
+                    regexScalar = (SimpleScalar)regex;
             } else if ("IgnoreDotDirectories".equalsIgnoreCase(key.toString())){
                 ignoreDotDirectories = ((TemplateBooleanModel) options.get("IgnoreDotDirectories")).getAsBoolean();
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
@@ -49,7 +54,11 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         }
         List<String> regexList = new ArrayList<>();
         if(regexSequence == null || regexSequence.size() == 0){
-            regexList.add("*.*");
+            if(regexScalar == null) {
+                regexList.add("*.*");
+            } else {
+                regexList.add(regexScalar.getAsString());
+            }
         } else {
             for (int i=0; i < regexSequence.size();i++){
                 regexList.add(regexSequence.get(i).toString());

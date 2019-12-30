@@ -18,18 +18,41 @@ import java.util.regex.Pattern;
  * TODO: add staringPath processing
  */
 public class CMDBProcessor {
-    public Map<String, JsonObject> getFileTree(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
-                                               boolean ignoreDotDirectories, boolean ignoreDotFiles, boolean includeCMDBInformation, boolean useCMDBPrefix) throws RunFreeMarkerException {
-        Map<String, JsonObject> output = new HashMap<String, JsonObject>();
-        Map<String, Path> files = new TreeMap<>();
+
+
+    private Map<String, String> cmdbFileSystem;
+    private Map<String, CMDB> cmdbMap = new HashMap<>();
+
+
+    public String getCMDBs(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, boolean useCMDBPrefix) throws RunFreeMarkerException {
+        try {
+            createCMDBFileSystem(lookupDirs,CMDBs, CMDBNamesList, baseCMDB, useCMDBPrefix);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+        for (CMDB cmdb : cmdbMap.values()) {
+            JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+            objectBuilder
+                    .add("Name", cmdb.getName())
+                    .add("CMDBPath",cmdb.getPath())
+                    .add("FileSystemPath",cmdb.getFileSystemPath())
+                    .add("Base",cmdb.isBase())
+                    .add("Active",cmdb.isActive())
+                    .add("ParentCMDB",StringUtils.defaultIfEmpty(cmdb.getParentCMDB(), ""));
+            jsonArrayBuilder.add(objectBuilder.build());
+
+        }
+        return jsonArrayBuilder.build().toString();
+    }
+    private void createCMDBFileSystem(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, boolean useCMDBPrefix) throws RunFreeMarkerException, IOException {
         Set<String> CMDBNames = new TreeSet<>();
-        CMDBNames.addAll(CMDBNamesList);
 
         /*
          * return an empty hash if no -g option applied
          */
         if(CMDBs.isEmpty() && lookupDirs.isEmpty()){
-            return output;
+            return;
         }
 
         /*
@@ -58,12 +81,90 @@ public class CMDBProcessor {
                     }
                 }
             }
-        } else {
-            for (String CMDBName : CMDBs.keySet()) {
-                String CMDBPath = CMDBs.get(CMDBName);
-                if(!Files.isDirectory(Paths.get(CMDBPath))) {
-                    throw new RunFreeMarkerException(
-                            String.format("Unable to read path \"%s\" for CMDB \"%s\"", CMDBPath, CMDBName));
+        }
+        for (String cmdbName : CMDBs.keySet()) {
+            String cmdbPath = CMDBs.get(cmdbName);
+            if(!Files.isDirectory(Paths.get(cmdbPath))) {
+                throw new RunFreeMarkerException(
+                        String.format("Unable to read path \"%s\" for CMDB \"%s\"", cmdbPath, cmdbName));
+            }else {
+                CMDB cmdb = new CMDB(cmdbName,cmdbPath);
+                cmdbMap.put(cmdb.getName(), cmdb);
+            }
+        }
+
+        for (String cmdbName : CMDBs.keySet()) {
+            CMDB cmdb = cmdbMap.get(cmdbName);
+            Path CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(cmdbName), ".cmdb");
+            JsonObject jsonObject = null;
+            /**
+             * if cmdb file exist - read layers from it
+             */
+            if(CMDBPath!=null) {
+                JsonReader jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
+                jsonObject = jsonReader.readObject();
+            }
+
+            JsonArray layers = Json.createArrayBuilder().build();
+            if (jsonObject!= null && jsonObject.containsKey("Layers")) {
+                layers = jsonObject.getJsonArray("Layers").asJsonArray();
+            }
+
+            if(StringUtils.isNotEmpty(baseCMDB) && StringUtils.equalsIgnoreCase(baseCMDB, cmdbName)){
+                cmdb.setBase(true);
+            }
+
+            if (!CMDBNamesList.isEmpty() && !CMDBNamesList.contains(cmdbName)){
+                cmdb.setActive(false);
+            }
+            /**
+             * if there are no layers defined in a base cmdb, add all detected cmdb as layers with a default base path
+             */
+            /*if (layers.isEmpty()){
+                JsonArrayBuilder layersBuilder = Json.createArrayBuilder();
+                for(String name:CMDBs.keySet()){
+                    if (name.equalsIgnoreCase(baseCMDB))
+                        continue;
+                    JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+                    objectBuilder.
+                            add("Name", name).
+                            add("BasePath", "/default/".concat(name));
+                    layersBuilder.add(objectBuilder.build());
+                }
+                layers = layersBuilder.build();
+            }*/
+            for (int i = 0; i < layers.size(); i++) {
+                JsonObject layer = layers.getJsonObject(i);
+                String layerName = layer.getString("Name");
+                String basePath = layer.getString("BasePath");
+                String CMDBPrefix = useCMDBPrefix?CMDBPath.getParent().getParent().getFileName().toString().concat("_"):"";
+
+                if (StringUtils.equalsIgnoreCase(cmdbName, layerName)){
+                    cmdb.setPath(basePath);
+                } else {
+                    Set<String> children = cmdb.getChildren();
+                    children.add(layerName);
+                    cmdb.setChildren(children);
+                    cmdbMap.get(layerName).setParentCMDB(cmdbName);
+                }
+                CMDB layerCMDB = cmdbMap.get(layerName);
+                layerCMDB.setPath(basePath);
+                if (!StringUtils.equalsIgnoreCase(cmdbName, layerName)){
+                    layerCMDB.setParentCMDB(cmdbName);
+                    cmdb.getChildren().add(layerName);
+                }
+            }
+        }
+        for (String cmdbName : CMDBs.keySet()) {
+            CMDB cmdb = cmdbMap.get(cmdbName);
+            if (StringUtils.isEmpty(cmdb.getPath())){
+                if (cmdb.isBase()){
+                    cmdb.setPath("/default/");
+                } else {
+                    cmdb.setPath("/default/".concat(cmdbName));
+                    if(StringUtils.isNotEmpty(baseCMDB)){
+                        cmdb.setParentCMDB(baseCMDB);
+                    }
                 }
             }
         }
@@ -79,19 +180,39 @@ public class CMDBProcessor {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"", baseCMDB, CMDBs));
         }
 
-        Map<String, String> cmdbFileSystem = processCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames, true));
+        cmdbFileSystem = processCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames, true));
 
+    }
+
+    public Map<String, JsonObject> getFileTree(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
+                                               boolean ignoreDotDirectories, boolean ignoreDotFiles, boolean includeCMDBInformation, boolean useCMDBPrefix) throws RunFreeMarkerException {
+
+        Map<String, JsonObject> output = new HashMap<String, JsonObject>();
+
+        try {
+            createCMDBFileSystem(lookupDirs, CMDBs, CMDBNamesList, baseCMDB, useCMDBPrefix);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(cmdbFileSystem == null){
+            return output;
+        }
+
+        Map<String, Path> files = new TreeMap<>();
         Map<String, String> cmdbFilesMapping = new TreeMap<>();
         Map<String, String> cmdbPhysicalFilesMapping = new TreeMap<>();
 
         List<String> refinedRegexList = refineRegexList(startingPath, regexLsit);
 
-        for (String CMDBName : cmdbFileSystem.keySet()) {
-            if (!CMDBs.containsKey(CMDBName)) {
-                throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
+        for (CMDB cmdb : cmdbMap.values()) {
+            if(!cmdb.isActive()){
+                    continue;
             }
+            /*if (!CMDBs.containsKey(CMDBName)) {
+                throw new RunFreeMarkerException(String.format("CMDB Name \"%s\" was not found in the detected CMDBs \"%s\"", CMDBName, CMDBs));
+            }*/
             // get physical starting dir for the current CMDB
-            Path startingDir = Paths.get(CMDBs.get(CMDBName));
+            Path startingDir = Paths.get(cmdb.getFileSystemPath());
             FileFinder.Finder finder = new FileFinder.Finder("*.*", ignoreDotDirectories, ignoreDotFiles);
             try {
                 Files.walkFileTree(startingDir, finder);
@@ -100,14 +221,13 @@ public class CMDBProcessor {
             }
             for (Path file : finder.done()) {
                 String path = file.toString();
-                String cmdbBasePath = cmdbFileSystem.get(CMDBName);
-                String cmdbPath = forceUnixStyle(StringUtils.replaceOnce(path, startingDir.toString(), cmdbBasePath));
+                String cmdbPath = forceUnixStyle(StringUtils.replaceOnce(path, startingDir.toString(), cmdb.getPath()));
                 for (String regex:refinedRegexList){
                     Pattern p = Pattern.compile(regex);
                     Matcher m = p.matcher(cmdbPath);
                     if(m.matches()){
                         cmdbFilesMapping.put(cmdbPath, path);
-                        cmdbPhysicalFilesMapping.put(path, CMDBName);
+                        cmdbPhysicalFilesMapping.put(path, cmdb.getName());
                     }
                 }
             }
@@ -155,7 +275,7 @@ public class CMDBProcessor {
             }
             if (includeCMDBInformation) {
                 String cmdbName = cmdbPhysicalFilesMapping.get(file.toString());
-                String cmdbBasePath = cmdbFileSystem.get(cmdbName);
+                String cmdbBasePath = cmdbMap.get(cmdbName).getPath();
                 jsonObjectBuilder.add("CMDB",
                         Json.createObjectBuilder().add("Name", cmdbName).add("BasePath", cmdbBasePath).add("File", file.toString()).build());
             }
@@ -187,7 +307,7 @@ public class CMDBProcessor {
                 }
             }
         } catch (NullPointerException e){
-            System.err.println(String.format("Cannot fin path %s", dir));
+            System.err.println(String.format("Cannot find path %s", dir));
         }
         return null;
     }
