@@ -13,7 +13,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        String lookupDir = Environment.getCurrentEnvironment().getGlobalVariable("lookupDir").toString();
+        List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMapping")).getWrappedObject();
         String baseCMDB = ((SimpleScalar) Environment.getCurrentEnvironment().getGlobalVariable("baseCMDB")).getAsString();
@@ -59,7 +59,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         CMDBProcessor cmdbProcessor = new CMDBProcessor();
         Map<String, JsonObject> result = null;
         try {
-            result = cmdbProcessor.getFileTree(lookupDir, cmdbPathMapping, CMDBNames,
+            result = cmdbProcessor.getFileTree(lookupDirs, cmdbPathMapping, CMDBNames,
                         baseCMDB, startingPath, regexList,ignoreDotDirectories, ignoreDotFiles, includeCMDBInformation, useCMDBPrefix);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();

@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * TODO: add staringPath processing
  */
 public class CMDBProcessor {
-    public Map<String, JsonObject> getFileTree(String lookupDir, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
+    public Map<String, JsonObject> getFileTree(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
                                                boolean ignoreDotDirectories, boolean ignoreDotFiles, boolean includeCMDBInformation, boolean useCMDBPrefix) throws RunFreeMarkerException {
         Map<String, JsonObject> output = new HashMap<String, JsonObject>();
         Map<String, Path> files = new TreeMap<>();
@@ -28,7 +28,7 @@ public class CMDBProcessor {
         /*
          * return an empty hash if no -g option applied
          */
-        if(CMDBs.isEmpty() && StringUtils.isEmpty(lookupDir)){
+        if(CMDBs.isEmpty() && lookupDirs.isEmpty()){
             return output;
         }
 
@@ -37,22 +37,26 @@ public class CMDBProcessor {
          * The second form identifies a directory whose subtree is scanned for .cmdb files,
          * with the containing directory being treated as a CMDB whose name is that of the containing directory.
          */
-        if (StringUtils.isNotEmpty(lookupDir)) {
-            if(!Files.isDirectory(Paths.get(lookupDir))) {
-                throw new RunFreeMarkerException(
-                        String.format("Unable to read path \"%s\" for CMDB lookup", lookupDir));
-            }
-            FileFinder.Finder cmdbFilefinder = new FileFinder.Finder(".cmdb", false, false);
-            try {
-                Files.walkFileTree(Paths.get(lookupDir), cmdbFilefinder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            for (Path cmdbFile : cmdbFilefinder.done()) {
-                String cmdbName = cmdbFile.getParent().getFileName().toString();
-                String cmdbPath = cmdbFile.getParent().toString();
-                String CMDBPrefix = useCMDBPrefix?cmdbFile.getParent().getParent().getFileName().toString().concat("_"):"";
-                CMDBs.put(CMDBPrefix.concat(cmdbName), cmdbPath);
+        if(!lookupDirs.isEmpty()) {
+            for (String lookupDir:lookupDirs) {
+                if (StringUtils.isNotEmpty(lookupDir)) {
+                    if (!Files.isDirectory(Paths.get(lookupDir))) {
+                        throw new RunFreeMarkerException(
+                                String.format("Unable to read path \"%s\" for CMDB lookup", lookupDir));
+                    }
+                    FileFinder.Finder cmdbFilefinder = new FileFinder.Finder(".cmdb", false, false);
+                    try {
+                        Files.walkFileTree(Paths.get(lookupDir), cmdbFilefinder);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    for (Path cmdbFile : cmdbFilefinder.done()) {
+                        String cmdbName = cmdbFile.getParent().getFileName().toString();
+                        String cmdbPath = cmdbFile.getParent().toString();
+                        String CMDBPrefix = useCMDBPrefix ? cmdbFile.getParent().getParent().getFileName().toString().concat("_") : "";
+                        CMDBs.put(CMDBPrefix.concat(cmdbName), cmdbPath);
+                    }
+                }
             }
         } else {
             for (String CMDBName : CMDBs.keySet()) {
@@ -68,14 +72,14 @@ public class CMDBProcessor {
          * doesn't expect CMDBPrefixes to be used
          * TODO: add a catch code
          */
-        if (StringUtils.isEmpty(baseCMDB)) {
+        /*if (StringUtils.isEmpty(baseCMDB)) {
             baseCMDB = "tenant";
-        }
-        if (!CMDBs.containsKey(baseCMDB)) {
+        }*/
+        if (StringUtils.isNotEmpty(baseCMDB) && !CMDBs.containsKey(baseCMDB)) {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"", baseCMDB, CMDBs));
         }
 
-        Map<String, String> cmdbFileSystem = processsCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames, true));
+        Map<String, String> cmdbFileSystem = processCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames, true));
 
         Map<String, String> cmdbFilesMapping = new TreeMap<>();
         Map<String, String> cmdbPhysicalFilesMapping = new TreeMap<>();
@@ -182,6 +186,8 @@ public class CMDBProcessor {
                     }
                 }
             }
+        } catch (NullPointerException e){
+            System.err.println(String.format("Cannot fin path %s", dir));
         }
         return null;
     }
@@ -198,15 +204,17 @@ public class CMDBProcessor {
      */
     private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix, final Set<String> CMDBNames, boolean baseProcessing){
         Map<String, String> cmdbFileSystem = new TreeMap<>();
-        JsonReader jsonReader = null;
         try {
-            Path CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+            Path CMDBPath = null;
+            if(StringUtils.isNotEmpty(baseCMDB)){
+                CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+            }
             JsonObject jsonObject = null;
             /**
              * if cmdb file exist - read layers from it
              */
             if(CMDBPath!=null) {
-                jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
+                JsonReader jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
                 jsonObject = jsonReader.readObject();
             }
 
@@ -253,7 +261,7 @@ public class CMDBProcessor {
         return cmdbFileSystem;
     }
 
-    private Map<String, String> processsCMDBFileSystem(String baseCMDBName, final Map<String, String> cmdbFileSystem){
+    private Map<String, String> processCMDBFileSystem(String baseCMDBName, final Map<String, String> cmdbFileSystem){
         Map<String, String> result = new TreeMap<>();
         String root = cmdbFileSystem.containsKey(baseCMDBName)?cmdbFileSystem.get(baseCMDBName):"/default/";
         for (String CMDBName:cmdbFileSystem.keySet()){
@@ -263,7 +271,9 @@ public class CMDBProcessor {
             }
             result.put(CMDBName, basePath);
         }
-        result.put(baseCMDBName, root);
+        if(StringUtils.isNotEmpty(baseCMDBName)) {
+            result.put(baseCMDBName, root);
+        }
         return result;
     }
 

@@ -69,7 +69,7 @@ public class RunFreeMarker {
         Option cmdbPathMappingOption = new Option("g", true, "the mapping of CMDB names to physical paths.");
         cmdbPathMappingOption.setRequired(false);
         cmdbPathMappingOption.setArgs(Option.UNLIMITED_VALUES);
-        cmdbPathMappingOption.setValueSeparator('=');
+        /*cmdbPathMappingOption.setValueSeparator('=');*/
 
         Option cmdbNamesOption = new Option("c", true, "the CMDBs to be processed.");
         cmdbNamesOption.setArgs(Option.UNLIMITED_VALUES);
@@ -99,14 +99,14 @@ public class RunFreeMarker {
             return;
         }
 
-        input.put("baseCMDB", "tenant");
-        input.put("lookupDir","");
+        input.put("baseCMDB", "");
 
         List<String> CMDBNames = new ArrayList<>();
 
         Iterator<Option> optionIterator = cmd.iterator();
         List<FileTemplateLoader> loaderList = new ArrayList<>();
         Map<String, String> cmdbPathMapping = new TreeMap<>();
+        List<String> lookupDirs = new ArrayList<>();
 
 
         while (optionIterator.hasNext()){
@@ -150,12 +150,13 @@ public class RunFreeMarker {
             }
             else if (opt.equals(cmdbPathMappingOption.getOpt()))
             {
-                if(values.length==1){
-                    input.put("lookupDir",values[0]);
-                }
-                else for (int i=0; i<values.length; i++){
-                    cmdbPathMapping.put(values[i], values[i+1]);
-                    i++;
+                for (int i=0; i<values.length; i++){
+                    if(StringUtils.contains(values[i], "=")){
+                        String[] pair = values[i].split("=");
+                        cmdbPathMapping.put(pair[0], pair[1]);
+                    } else {
+                        lookupDirs.add(values[i]);
+                    }
                 }
             }
             else if (opt.equals(cmdbNamesOption.getOpt()))
@@ -169,6 +170,7 @@ public class RunFreeMarker {
 
         }
 
+        input.put("lookupDirs", lookupDirs);
         input.put("cmdbPathMapping", cmdbPathMapping);
         input.put("CMDBNames", CMDBNames);
 
