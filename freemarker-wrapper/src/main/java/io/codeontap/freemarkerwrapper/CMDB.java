@@ -11,7 +11,7 @@ public class CMDB {
     String path;
     String fileSystemPath;
     boolean base = false;
-    boolean active = true;
+    boolean active = false;
     String parentCMDB;
     Set<String> children = new HashSet<>();
 

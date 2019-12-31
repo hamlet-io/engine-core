@@ -55,7 +55,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         List<String> regexList = new ArrayList<>();
         if(regexSequence == null || regexSequence.size() == 0){
             if(regexScalar == null) {
-                regexList.add("*.*");
+                regexList.add("^.*$");
             } else {
                 regexList.add(regexScalar.getAsString());
             }

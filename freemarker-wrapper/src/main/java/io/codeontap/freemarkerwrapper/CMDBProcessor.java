@@ -35,7 +35,7 @@ public class CMDBProcessor {
             JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
             objectBuilder
                     .add("Name", cmdb.getName())
-                    .add("CMDBPath",cmdb.getPath())
+                    .add("CMDBPath",StringUtils.defaultIfEmpty(cmdb.getPath(), ""))
                     .add("FileSystemPath",cmdb.getFileSystemPath())
                     .add("Base",cmdb.isBase())
                     .add("Active",cmdb.isActive())
@@ -112,10 +112,11 @@ public class CMDBProcessor {
 
             if(StringUtils.isNotEmpty(baseCMDB) && StringUtils.equalsIgnoreCase(baseCMDB, cmdbName)){
                 cmdb.setBase(true);
+                cmdb.setActive(true);
             }
 
-            if (!CMDBNamesList.isEmpty() && !CMDBNamesList.contains(cmdbName)){
-                cmdb.setActive(false);
+            if (CMDBNamesList.isEmpty() || CMDBNamesList.contains(cmdbName)){
+                cmdb.setActive(true);
             }
             /**
              * if there are no layers defined in a base cmdb, add all detected cmdb as layers with a default base path
@@ -145,29 +146,28 @@ public class CMDBProcessor {
                     Set<String> children = cmdb.getChildren();
                     children.add(layerName);
                     cmdb.setChildren(children);
-                    cmdbMap.get(layerName).setParentCMDB(cmdbName);
+                    if(cmdbMap.containsKey(layerName)){
+                        cmdbMap.get(layerName).setParentCMDB(cmdbName);
+                    } else {
+                        throw new RunFreeMarkerException(String.format("CMDB \"%s\" is missing from the detected CMDBs \"%s\"", layerName, CMDBs));
+                    }
                 }
                 CMDB layerCMDB = cmdbMap.get(layerName);
-                layerCMDB.setPath(basePath);
                 if (!StringUtils.equalsIgnoreCase(cmdbName, layerName)){
+                    layerCMDB.setPath(basePath);
                     layerCMDB.setParentCMDB(cmdbName);
+                    if (CMDBNamesList.isEmpty() || CMDBNamesList.contains(layerName)){
+                        layerCMDB.setActive(true);
+                    }
                     cmdb.getChildren().add(layerName);
                 }
             }
         }
-        for (String cmdbName : CMDBs.keySet()) {
-            CMDB cmdb = cmdbMap.get(cmdbName);
-            if (StringUtils.isEmpty(cmdb.getPath())){
-                if (cmdb.isBase()){
-                    cmdb.setPath("/default/");
-                } else {
-                    cmdb.setPath("/default/".concat(cmdbName));
-                    if(StringUtils.isNotEmpty(baseCMDB)){
-                        cmdb.setParentCMDB(baseCMDB);
-                    }
-                }
-            }
+        for (CMDB cmdb:cmdbMap.values()){
+            updatePath(cmdb);
         }
+
+
         /**
          * when -b option is not specified, the default base CMDB is tenant
          * doesn't expect CMDBPrefixes to be used
@@ -182,6 +182,26 @@ public class CMDBProcessor {
 
         cmdbFileSystem = processCMDBFileSystem(baseCMDB, buildCMDBFileSystem(baseCMDB, CMDBs, useCMDBPrefix, CMDBNames, true));
 
+    }
+
+    private void updatePath(CMDB cmdb){
+        if (StringUtils.isEmpty(cmdb.getPath())){
+            if (cmdb.isBase()){
+                cmdb.setPath("/");
+            } else {
+                cmdb.setPath("/default/".concat(cmdb.getName()));
+            }
+        } else if(!StringUtils.startsWith(cmdb.getPath(),"/")) {
+            if(StringUtils.isNotEmpty(cmdb.getParentCMDB())){
+                CMDB parent = cmdbMap.get(cmdb.getParentCMDB());
+                String path = null;
+                if(StringUtils.isEmpty(parent.getPath()) || !StringUtils.startsWith(parent.getPath(),"/")){
+                    updatePath(parent);
+                }
+                path = parent.getPath().concat("/").concat(cmdb.getName());
+                cmdb.setPath(forceUnixStyle(path));
+            }
+        }
     }
 
     public Map<String, JsonObject> getFileTree(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, String startingPath, List<String> regexLsit,
@@ -244,35 +264,40 @@ public class CMDBProcessor {
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
-            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
-                jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            /**
-             * Check if a file is a freemarker template - starts with [#ftl]
-             * if not, attempt to parse it as a json file
-             */
-            try {
-                Object[] array = Files.lines(file).limit(1).toArray();
-                if(array.length > 0) {
-                    String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
-                    if (StringUtils.startsWith(firstLine, "[#ftl]")) {
-                        jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(path)));
-                    } else {
-                        try (FileInputStream inputStream = new FileInputStream(file.toString())) {
-                            JsonReader reader = Json.createReader(inputStream);
-                            JsonObject jsonObject = reader.readObject();
-                            reader.close();
-                            jsonObjectBuilder.add("ContentsAsJSON", jsonObject);
-                        } catch (JsonParsingException e) {
-                            System.out.println(String.format("The content of file %s is not a valid JSON and won't be parsed.", forceUnixStyle(key)));
+            if(!Files.isDirectory(file)) {
+                try (FileInputStream inputStream = new FileInputStream(file.toString())) {
+                    jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    /**
+                     * Check if a file is a freemarker template - starts with [#ftl]
+                     * if not, attempt to parse it as a json file
+                     */
+                    Object[] array = Files.lines(file).limit(1).toArray();
+                    if(array.length > 0) {
+                        String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
+                        if (StringUtils.startsWith(firstLine, "[#ftl]")) {
+                            jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(path)));
+                        } else {
+                            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
+                                JsonReader reader = Json.createReader(inputStream);
+                                JsonObject jsonObject = reader.readObject();
+                                reader.close();
+                                jsonObjectBuilder.add("ContentsAsJSON", jsonObject);
+                            } catch (JsonParsingException e) {
+                                //do nothing
+                            }
                         }
                     }
+                } catch (UncheckedIOException e) {
+                    //
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+
             if (includeCMDBInformation) {
                 String cmdbName = cmdbPhysicalFilesMapping.get(file.toString());
                 String cmdbBasePath = cmdbMap.get(cmdbName).getPath();
