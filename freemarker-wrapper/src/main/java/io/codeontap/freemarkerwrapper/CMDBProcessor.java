@@ -198,7 +198,7 @@ public class CMDBProcessor {
                 if(StringUtils.isEmpty(parent.getPath()) || !StringUtils.startsWith(parent.getPath(),"/")){
                     updatePath(parent);
                 }
-                path = parent.getPath().concat("/").concat(cmdb.getName());
+                path = parent.getPath().concat("/").concat(cmdb.getPath());
                 cmdb.setPath(forceUnixStyle(path));
             }
         }
