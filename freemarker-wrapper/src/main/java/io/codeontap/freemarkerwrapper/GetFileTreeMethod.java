@@ -66,7 +66,7 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
         }
 
         CMDBProcessor cmdbProcessor = new CMDBProcessor();
-        Map<String, JsonObject> result = null;
+        Set<JsonObject> result = null;
         try {
             result = cmdbProcessor.getFileTree(lookupDirs, cmdbPathMapping, CMDBNames,
                         baseCMDB, startingPath, regexList,ignoreDotDirectories, ignoreDotFiles, includeCMDBInformation, useCMDBPrefix);
@@ -74,6 +74,6 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
             e.printStackTrace();
         }
 
-        return new SimpleHash(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
+        return new SimpleCollection(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
     }
 }

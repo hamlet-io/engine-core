@@ -3,6 +3,7 @@ package io.codeontap.freemarkerwrapper;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import javax.json.JsonObject;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ public class CMDB {
     boolean active = false;
     String parentCMDB;
     Set<String> children = new HashSet<>();
+    JsonObject content;
 
     public CMDB(String name, String fileSystemPath) {
         this.name = name;
@@ -75,6 +77,14 @@ public class CMDB {
 
     public void setChildren(Set<String> children) {
         this.children = children;
+    }
+
+    public JsonObject getContent() {
+        return content;
+    }
+
+    public void setContent(JsonObject content) {
+        this.content = content;
     }
 
     @Override
