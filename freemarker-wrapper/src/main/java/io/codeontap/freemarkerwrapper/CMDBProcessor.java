@@ -48,7 +48,9 @@ public class CMDBProcessor {
                     .add("FileSystemPath",cmdb.getFileSystemPath())
                     .add("Base",cmdb.isBase())
                     .add("Active",cmdb.isActive())
-                    .add("ParentCMDB",StringUtils.defaultIfEmpty(cmdb.getParentCMDB(), ""));
+                    .add("ParentCMDB",StringUtils.defaultIfEmpty(cmdb.getParentCMDB(), ""))
+                    .add("ContentsAsJSON", cmdb.getContent());
+
             jsonArrayBuilder.add(objectBuilder.build());
 
         }
@@ -89,8 +91,8 @@ public class CMDBProcessor {
                 }
             }
         }
-        cmdbNames.addAll(CMDBs.keySet());
-        for (String cmdbName : cmdbNames) {
+        /*cmdbNames.addAll(CMDBs.keySet());*/
+        for (String cmdbName : CMDBs.keySet()) {
             String cmdbPath = CMDBs.get(cmdbName);
             if(!Files.isDirectory(Paths.get(cmdbPath))) {
                 throw new RunFreeMarkerException(
@@ -240,6 +242,9 @@ public class CMDBProcessor {
 
         List<String> refinedRegexList = refineRegexList(startingPath, regexLsit);
 
+        if(cmdbNames.isEmpty()){
+            cmdbNames.addAll(cmdbMap.keySet());
+        }
         for (String cmdbName : cmdbNames) {
             CMDB cmdb = cmdbMap.get(cmdbName);
             if(!cmdb.isActive()){

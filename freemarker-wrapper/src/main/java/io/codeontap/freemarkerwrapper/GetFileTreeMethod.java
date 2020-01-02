@@ -74,6 +74,6 @@ public class GetFileTreeMethod implements TemplateMethodModelEx {
             e.printStackTrace();
         }
 
-        return new SimpleCollection(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
+        return new SimpleSequence(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
     }
 }
