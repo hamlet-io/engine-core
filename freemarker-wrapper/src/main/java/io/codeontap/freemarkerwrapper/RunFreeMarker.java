@@ -243,7 +243,7 @@ public class RunFreeMarker {
 
         input.put("random", new Random());
         input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
-        input.put("getFileTree", new GetFileTreeMethod());
+        input.put("getCMDBTree", new GetCMDBTreeMethod());
         input.put("getCMDBs", new GetCMDBsMethod());
 
 

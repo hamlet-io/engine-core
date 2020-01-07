@@ -24,7 +24,7 @@ public class GetFileTreeMethodTest {
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.UK);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        cfg.setObjectWrapper(new JsonStringWrapper(cfg.getIncompatibleImprovements()));
+        cfg.setObjectWrapper(new JsonValueWrapper(cfg.getIncompatibleImprovements()));
     }
 
     @Test
@@ -33,14 +33,16 @@ public class GetFileTreeMethodTest {
             input = new HashMap<String, Object>();
             input.put("getFileTree", new GetFileTreeMethod());
             Map<String,String> cmdbPathMapping = new HashMap();
-            cmdbPathMapping.put("accounts", "/work/gs-psma/cot/accounts/");
-            cmdbPathMapping.put("almv2", "/work/gs-psma/cot/almv2/");
-            cmdbPathMapping.put("api", "/work/gs-psma/cot/api/");
-            input.put("cmdbPathMapping", cmdbPathMapping);
+            cmdbPathMapping.put("accounts", "c:\\work\\psma\\cot\\accounts\\");
+/*
+            cmdbPathMapping.put("almv2", "/c/work/psma/cot/almv2/");
+*/
+            cmdbPathMapping.put("api", "c:\\work\\psma\\cot\\api\\");
+            input.put("cmdbPathMappings", cmdbPathMapping);
             /*input.put("lookupDir", "/work/gs-psma/cot");*/
-            input.put("lookupDir", "");
-            input.put("CMDBNames", Arrays.asList(new String[]{"accounts", "almv2", "api"}));
-            input.put("baseCMDB", "accounts");
+            input.put("lookupDirs", Arrays.asList(new String[]{""}));
+            input.put("CMDBNames", Arrays.asList(new String[]{  "accounts","api"/*"almv2",*/}));
+            input.put("baseCMDB","");
             cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
             Template freeMarkerTemplate = cfg.getTemplate("/work/codeontap/gen3-freemarker-wrapper/file.ftl");
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -96,7 +98,7 @@ public class GetFileTreeMethodTest {
             input = new HashMap<String, Object>();
             input.put("getFileTree", new GetFileTreeMethod());
             Map<String,String> cmdbPathMapping = new HashMap();
-            input.put("cmdbPathMapping", cmdbPathMapping);
+            input.put("cmdbPathMappings", cmdbPathMapping);
             input.put("lookupDir", "/work/gs-psma/cot");
             input.put("CMDBNames", Arrays.asList(new String[]{"accounts", "almv2", "api"}));
             input.put("baseCMDB", "accounts");

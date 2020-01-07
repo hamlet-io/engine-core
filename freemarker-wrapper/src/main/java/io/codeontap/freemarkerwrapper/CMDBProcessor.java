@@ -1,6 +1,5 @@
 package io.codeontap.freemarkerwrapper;
 
-import com.sun.deploy.util.OrderedHashSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -307,13 +306,15 @@ public class CMDBProcessor {
                         if (StringUtils.startsWith(firstLine, "[#ftl]")) {
                             jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(path)));
                         } else {
+                            JsonStructure result = null;
                             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                                 JsonReader reader = Json.createReader(inputStream);
-                                JsonObject jsonObject = reader.readObject();
+                                JsonStructure jsonStructure = reader.read();
                                 reader.close();
-                                jsonObjectBuilder.add("ContentsAsJSON", jsonObject);
+                                jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
                             } catch (JsonParsingException e) {
                                 //do nothing
+                                System.err.println(e);
                             }
                         }
                     }
@@ -481,6 +482,37 @@ public class CMDBProcessor {
             return startingDir;
         } else {
             return startingDir.concat("/");
+        }
+    }
+
+
+    private JsonValue cleanUpJson(JsonValue jsonValue){
+        JsonObjectBuilder jsonObjectBuilder = null;
+        JsonArrayBuilder jsonArrayBuilder = null;
+        if (jsonValue instanceof JsonObject){
+            JsonObject jsonObject = (JsonObject)jsonValue;
+            jsonObjectBuilder = Json.createObjectBuilder(jsonObject);
+            for(String s:jsonObject.keySet()){
+                if(jsonObject.get(s) == JsonValue.NULL){
+                    jsonObjectBuilder.remove(s);
+                } else {
+                    jsonObjectBuilder.add(s, cleanUpJson(jsonObject.get(s)));
+                }
+            }
+            return jsonObjectBuilder.build();
+        } else if(jsonValue instanceof JsonArray){
+            JsonArray jsonArray = (JsonArray)jsonValue;
+            jsonArrayBuilder = Json.createArrayBuilder();
+            Iterator<JsonValue> iterator = jsonArray.iterator();
+            while (iterator.hasNext()){
+                JsonValue jsonValue1 = iterator.next();
+                if(jsonValue1.getValueType() != JsonValue.ValueType.NULL){
+                    jsonArrayBuilder.add(cleanUpJson(jsonValue1));
+                }
+            }
+            return jsonArrayBuilder.build();
+        } else {
+            return jsonValue;
         }
     }
 }

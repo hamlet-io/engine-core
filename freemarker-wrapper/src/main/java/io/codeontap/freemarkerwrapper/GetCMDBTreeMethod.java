@@ -6,7 +6,7 @@ import freemarker.template.*;
 import javax.json.JsonObject;
 import java.util.*;
 
-public class GetFileTreeMethod implements TemplateMethodModelEx {
+public class GetCMDBTreeMethod implements TemplateMethodModelEx {
 
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 2) {
