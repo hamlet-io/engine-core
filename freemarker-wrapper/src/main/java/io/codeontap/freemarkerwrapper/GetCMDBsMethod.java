@@ -3,6 +3,7 @@ package io.codeontap.freemarkerwrapper;
 import freemarker.core.Environment;
 import freemarker.template.*;
 
+import javax.json.JsonArray;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +20,14 @@ public class GetCMDBsMethod implements TemplateMethodModelEx {
         TemplateModelIterator iterator = options.keys().iterator();
         TemplateSequenceModel regexSequence = null;
         boolean useCMDBPrefix = Boolean.FALSE;
+        boolean activeOnly = Boolean.FALSE;
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("UseCMDBPrefix".equalsIgnoreCase(key.toString())){
                 useCMDBPrefix = ((TemplateBooleanModel) options.get("UseCMDBPrefix")).getAsBoolean();
+            }
+            else if ("ActiveOnly".equalsIgnoreCase(key.toString())){
+                activeOnly = ((TemplateBooleanModel) options.get("ActiveOnly")).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -35,14 +40,14 @@ public class GetCMDBsMethod implements TemplateMethodModelEx {
         }
 
         CMDBProcessor cmdbProcessor = new CMDBProcessor();
-        String result = null;
+        JsonArray result = null;
         try {
             result = cmdbProcessor.getCMDBs(lookupDirs, cmdbPathMapping, CMDBNames,
-                        baseCMDB, useCMDBPrefix);
+                        baseCMDB, useCMDBPrefix, activeOnly);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }
 
-        return new SimpleScalar(result);
+        return new SimpleSequence(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
     }
 }

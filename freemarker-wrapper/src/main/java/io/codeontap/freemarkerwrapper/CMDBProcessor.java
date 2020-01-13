@@ -24,7 +24,7 @@ public class CMDBProcessor {
     private Map<String, CMDB> cmdbMap = new LinkedHashMap<>();
 
 
-    public String getCMDBs(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, boolean useCMDBPrefix) throws RunFreeMarkerException {
+    public JsonArray getCMDBs(List<String> lookupDirs, Map<String, String> CMDBs, final List<String> CMDBNamesList, String baseCMDB, boolean useCMDBPrefix, boolean activeOnly) throws RunFreeMarkerException {
         Set<String> cmdbNames = new LinkedHashSet<>();
 
         if(!CMDBNamesList.isEmpty()){
@@ -41,6 +41,8 @@ public class CMDBProcessor {
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         for (CMDB cmdb : cmdbMap.values()) {
             JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+            if(activeOnly && !cmdb.isActive())
+                continue;
             objectBuilder
                     .add("Name", cmdb.getName())
                     .add("CMDBPath",StringUtils.defaultIfEmpty(cmdb.getPath(), ""))
@@ -53,7 +55,7 @@ public class CMDBProcessor {
             jsonArrayBuilder.add(objectBuilder.build());
 
         }
-        return jsonArrayBuilder.build().toString();
+        return jsonArrayBuilder.build();
     }
     private void createCMDBFileSystem(List<String> lookupDirs, Map<String, String> CMDBs, Set<String> cmdbNames, String baseCMDB, boolean useCMDBPrefix) throws RunFreeMarkerException, IOException {
         /*
