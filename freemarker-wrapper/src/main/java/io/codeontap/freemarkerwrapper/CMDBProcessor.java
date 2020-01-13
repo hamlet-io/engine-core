@@ -305,7 +305,7 @@ public class CMDBProcessor {
                         String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
                         if (StringUtils.startsWith(firstLine, "[#ftl]")) {
                             jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(path)));
-                        } else {
+                        } else if(file.toString().toLowerCase().endsWith(".json")){
                             JsonStructure result = null;
                             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                                 JsonReader reader = Json.createReader(inputStream);
@@ -314,7 +314,7 @@ public class CMDBProcessor {
                                 jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
                             } catch (JsonParsingException e) {
                                 //do nothing
-                                System.err.println(e);
+                                System.err.println(String.format("Unable to parse json file %s. Error details: %s", file, e.getMessage()));
                             }
                         }
                     }
