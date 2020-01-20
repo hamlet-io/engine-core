@@ -130,22 +130,7 @@ public class CMDBProcessor {
             } else if (cmdbNames.isEmpty() || cmdbNames.contains(cmdbName)){
                 cmdb.setActive(true);
             }
-            /**
-             * if there are no layers defined in a base cmdb, add all detected cmdb as layers with a default base path
-             */
-            /*if (layers.isEmpty()){
-                JsonArrayBuilder layersBuilder = Json.createArrayBuilder();
-                for(String name:CMDBs.keySet()){
-                    if (name.equalsIgnoreCase(baseCMDB))
-                        continue;
-                    JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-                    objectBuilder.
-                            add("Name", name).
-                            add("BasePath", "/default/".concat(name));
-                    layersBuilder.add(objectBuilder.build());
-                }
-                layers = layersBuilder.build();
-            }*/
+
             for (int i = 0; i < layers.size(); i++) {
                 JsonObject layer = layers.getJsonObject(i);
                 String layerName = layer.getString("Name");
@@ -185,9 +170,6 @@ public class CMDBProcessor {
          * doesn't expect CMDBPrefixes to be used
          * TODO: add a catch code
          */
-        /*if (StringUtils.isEmpty(baseCMDB)) {
-            baseCMDB = "tenant";
-        }*/
         if (StringUtils.isNotEmpty(baseCMDB) && !CMDBs.containsKey(baseCMDB)) {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"", baseCMDB, CMDBs));
         }
@@ -340,19 +322,6 @@ public class CMDBProcessor {
             output.add(jsonObjectBuilder.build());
         }
         return output;
-    }
-
-    private Set<String> listFilesUsingDirectoryStream(String dir) throws IOException {
-        Set<String> fileList = new HashSet<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dir))) {
-            for (Path path : stream) {
-                if (!Files.isDirectory(path)) {
-                    fileList.add(path.getFileName()
-                            .toString());
-                }
-            }
-        }
-        return fileList;
     }
 
     private Path readJSONFileUsingDirectoryStream(String dir, String fileName) throws IOException {
