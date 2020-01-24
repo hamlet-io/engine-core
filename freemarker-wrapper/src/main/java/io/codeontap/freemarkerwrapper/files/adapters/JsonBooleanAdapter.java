@@ -1,4 +1,4 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.adapters;
 
 import freemarker.template.*;
 

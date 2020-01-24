@@ -1,7 +1,10 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.methods.list.cmdb;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
+import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
+import io.codeontap.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
+import io.codeontap.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
 
 import javax.json.JsonArray;
 import java.util.ArrayList;
@@ -42,8 +45,14 @@ public class GetCMDBsMethod implements TemplateMethodModelEx {
         CMDBProcessor cmdbProcessor = new CMDBProcessor();
         JsonArray result = null;
         try {
-            result = cmdbProcessor.getCMDBs(lookupDirs, cmdbPathMapping, CMDBNames,
-                        baseCMDB, useCMDBPrefix, activeOnly);
+            CMDBMeta cmdbMeta = new CMDBMeta();
+            cmdbMeta.setLookupDirs(lookupDirs);
+            cmdbMeta.setCMDBs(cmdbPathMapping);
+            cmdbMeta.setCMDBNamesList(CMDBNames);
+            cmdbMeta.setBaseCMDB(baseCMDB);
+            cmdbMeta.setUseCMDBPrefix(useCMDBPrefix);
+            cmdbMeta.setActiveOnly(activeOnly);
+            result = cmdbProcessor.getLayers(cmdbMeta);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }

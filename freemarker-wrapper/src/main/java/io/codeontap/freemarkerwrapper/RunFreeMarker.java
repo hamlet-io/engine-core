@@ -3,9 +3,15 @@ package io.codeontap.freemarkerwrapper;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.template.*;
+import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
+import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
+import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
+import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
+import io.codeontap.freemarkerwrapper.files.methods.list.plugin.GetPluginsMethod;
+import io.codeontap.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.*;
@@ -69,7 +75,6 @@ public class RunFreeMarker {
         Option cmdbPathMappingOption = new Option("g", true, "the mapping of CMDB names to physical paths.");
         cmdbPathMappingOption.setRequired(false);
         cmdbPathMappingOption.setArgs(Option.UNLIMITED_VALUES);
-        /*cmdbPathMappingOption.setValueSeparator('=');*/
 
         Option cmdbNamesOption = new Option("c", true, "the CMDBs to be processed.");
         cmdbNamesOption.setArgs(Option.UNLIMITED_VALUES);
@@ -106,6 +111,7 @@ public class RunFreeMarker {
         Iterator<Option> optionIterator = cmd.iterator();
         List<FileTemplateLoader> loaderList = new ArrayList<>();
         Map<String, String> cmdbPathMappings = new TreeMap<>();
+        List<String> directories = new ArrayList<>();
         List<String> lookupDirs = new ArrayList<>();
 
 
@@ -145,6 +151,7 @@ public class RunFreeMarker {
 
             else if (opt.equals(directoryOption.getOpt())) {
                 for (String directory:values){
+                    directories.add(directory);
                     loaderList.add(new FileTemplateLoader(new File(directory)));
                 }
             }
@@ -173,6 +180,7 @@ public class RunFreeMarker {
         input.put("lookupDirs", lookupDirs);
         input.put("cmdbPathMappings", cmdbPathMappings);
         input.put("CMDBNames", CMDBNames);
+        input.put("pluginLayers", directories);
 
         loaderList.add(new FileTemplateLoader(new File("/")));
         /*templateLoaders = new FileTemplateLoader[loaderSet.size()];*/
@@ -186,11 +194,6 @@ public class RunFreeMarker {
             System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
         }
         cfg.setTemplateLoader(new MultiTemplateLoader(loaderList.toArray(new FileTemplateLoader[]{})));
-
-
-
-
-
 
         if(!StringUtils.isBlank(templateFileName))
         {
@@ -245,6 +248,8 @@ public class RunFreeMarker {
         input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
         input.put("getCMDBTree", new GetCMDBTreeMethod());
         input.put("getCMDBs", new GetCMDBsMethod());
+        input.put("getPlugins", new GetPluginsMethod());
+        input.put("getPluginTree", new GetPluginTreeMethod());
 
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
@@ -271,9 +276,4 @@ public class RunFreeMarker {
     }
 
 }
-class RunFreeMarkerException extends Exception
-{
-    RunFreeMarkerException(String message) {
-        super(message);
-    }
-}
+

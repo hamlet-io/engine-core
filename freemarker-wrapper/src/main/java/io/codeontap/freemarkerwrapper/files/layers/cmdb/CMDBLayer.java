@@ -1,50 +1,26 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.layers.cmdb;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import io.codeontap.freemarkerwrapper.files.layers.Layer;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.json.JsonObject;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CMDB {
-    String name;
-    String path;
-    String fileSystemPath;
-    boolean base = false;
-    boolean active = false;
-    String parentCMDB;
-    Set<String> children = new HashSet<>();
-    JsonObject content;
+public class CMDBLayer extends Layer {
+    private boolean base = false;
+    private boolean active = false;
+    private String parentCMDB;
+    private Set<String> children = new HashSet<>();
+    private JsonObject content;
 
-    public CMDB(String name, String fileSystemPath) {
-        this.name = name;
-        this.path = path;
-        this.fileSystemPath = fileSystemPath;
+    public CMDBLayer(String name, String path, String fileSystemPath) {
+        super(name, path, fileSystemPath);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getFileSystemPath() {
-        return fileSystemPath;
-    }
-
-    public void setFileSystemPath(String fileSystemPath) {
-        this.fileSystemPath = fileSystemPath;
+    public CMDBLayer(String name, String fileSystemPath) {
+        super(name, null, fileSystemPath);
     }
 
     public boolean isBase() {
@@ -93,16 +69,16 @@ public class CMDB {
 
         if (!(o instanceof String)) return false;
 
-        CMDB cmdb = (CMDB) o;
+        CMDBLayer cmdbLayer = (CMDBLayer) o;
 
         return new EqualsBuilder()
-                .append(isBase(), cmdb.isBase())
-                .append(isActive(), cmdb.isActive())
-                .append(getName(), cmdb.getName())
-                .append(getPath(), cmdb.getPath())
-                .append(getFileSystemPath(), cmdb.getFileSystemPath())
-                .append(getParentCMDB(), cmdb.getParentCMDB())
-                .append(getChildren(), cmdb.getChildren())
+                .append(isBase(), cmdbLayer.isBase())
+                .append(isActive(), cmdbLayer.isActive())
+                .append(getName(), cmdbLayer.getName())
+                .append(getPath(), cmdbLayer.getPath())
+                .append(getFileSystemPath(), cmdbLayer.getFileSystemPath())
+                .append(getParentCMDB(), cmdbLayer.getParentCMDB())
+                .append(getChildren(), cmdbLayer.getChildren())
                 .isEquals();
     }
 

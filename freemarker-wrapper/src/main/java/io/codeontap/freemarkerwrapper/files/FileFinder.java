@@ -1,4 +1,4 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files;
 /**
  * Sample code that finds files that match the specified glob pattern.
  * For more information on what constitutes a glob pattern, see
@@ -33,7 +33,7 @@ public class FileFinder {
         private boolean ignoreDotDirectories = true;
         private boolean ignoreDotFiles = true;
 
-        Finder(String pattern, boolean ignoreDotDirectories, boolean ignoreDotFiles) {
+        public Finder(String pattern, boolean ignoreDotDirectories, boolean ignoreDotFiles) {
             this.ignoreDotDirectories = ignoreDotDirectories;
             this.ignoreDotFiles = ignoreDotFiles;
             matcher = FileSystems.getDefault()
@@ -56,7 +56,7 @@ public class FileFinder {
 
         // Prints the total number of
         // matches to standard out.
-        Set<Path> done() {
+        public Set<Path> done() {
             /*System.out.println("Matched: "
                     + numMatches);*/
             return matches;

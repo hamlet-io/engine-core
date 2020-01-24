@@ -1,4 +1,4 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.adapters;
 
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.TemplateModel;
@@ -6,7 +6,6 @@ import freemarker.template.TemplateModelException;
 import freemarker.template.Version;
 
 import javax.json.JsonNumber;
-import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
