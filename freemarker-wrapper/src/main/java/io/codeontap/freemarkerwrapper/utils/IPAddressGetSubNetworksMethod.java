@@ -1,4 +1,4 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.utils;
 
 import freemarker.template.*;
 import inet.ipaddr.IPAddress;

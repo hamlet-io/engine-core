@@ -1,22 +1,25 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.methods.tree.plugin;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
+import io.codeontap.freemarkerwrapper.files.adapters.JsonStringAdapter;
+import io.codeontap.freemarkerwrapper.files.meta.plugin.PluginMeta;
+import io.codeontap.freemarkerwrapper.files.processors.plugin.PluginProcessor;
+import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
 
 import javax.json.JsonObject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-public class GetCMDBTreeMethod implements TemplateMethodModelEx {
+public class GetPluginTreeMethod implements TemplateMethodModelEx {
 
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 2) {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
-        List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
-        Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMappings")).getWrappedObject();
-        String baseCMDB = ((SimpleScalar) Environment.getCurrentEnvironment().getGlobalVariable("baseCMDB")).getAsString();
+        List<String> pluginLayers = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("pluginLayers")).getWrappedObject();
         Object startingPathObj = args.get(0);
         String startingPath = null;
         if (startingPathObj instanceof SimpleScalar){
@@ -30,8 +33,8 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
         SimpleScalar regexScalar = null;
         boolean ignoreDotDirectories = Boolean.TRUE;
         boolean ignoreDotFiles = Boolean.TRUE;
-        boolean includeCMDBInformation = Boolean.FALSE;
-        boolean useCMDBPrefix = Boolean.FALSE;
+        boolean includePluginInformation = Boolean.FALSE;
+
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
@@ -44,12 +47,9 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
                 ignoreDotDirectories = ((TemplateBooleanModel) options.get("IgnoreDotDirectories")).getAsBoolean();
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
                 ignoreDotFiles = ((TemplateBooleanModel) options.get("IgnoreDotFiles")).getAsBoolean();
+            } else if ("IncludePluginInformation".equalsIgnoreCase(key.toString())){
+                includePluginInformation = ((TemplateBooleanModel) options.get("IncludePluginInformation")).getAsBoolean();
 
-            } else if ("IncludeCMDBInformation".equalsIgnoreCase(key.toString())){
-                includeCMDBInformation = ((TemplateBooleanModel) options.get("IncludeCMDBInformation")).getAsBoolean();
-
-            } else if ("UseCMDBPrefix".equalsIgnoreCase(key.toString())){
-                useCMDBPrefix = ((TemplateBooleanModel) options.get("UseCMDBPrefix")).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -65,11 +65,17 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
             }
         }
 
-        CMDBProcessor cmdbProcessor = new CMDBProcessor();
+        PluginProcessor pluginProcessor = new PluginProcessor();
         Set<JsonObject> result = null;
         try {
-            result = cmdbProcessor.getFileTree(lookupDirs, cmdbPathMapping, CMDBNames,
-                        baseCMDB, startingPath, regexList,ignoreDotDirectories, ignoreDotFiles, includeCMDBInformation, useCMDBPrefix);
+            PluginMeta meta = new PluginMeta();
+            meta.setLayers(pluginLayers);
+            meta.setStartingPath(startingPath);
+            meta.setRegexList(regexList);
+            meta.setIgnoreDotDirectories(ignoreDotDirectories);
+            meta.setIgnoreDotFiles(ignoreDotFiles);
+            meta.setIncludeInformation(includePluginInformation);
+            result = pluginProcessor.getLayerTree(meta);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }

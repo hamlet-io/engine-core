@@ -1,9 +1,8 @@
-package io.codeontap.freemarkerwrapper;
+package io.codeontap.freemarkerwrapper.files.adapters;
 
 import freemarker.template.*;
 
 import javax.json.JsonString;
-import javax.json.JsonValue;
 
 public class JsonStringAdapter extends WrappingTemplateModel implements TemplateScalarModel,
         AdapterTemplateModel {
