@@ -11,6 +11,8 @@ public abstract class LayerMeta {
     private boolean ignoreDotDirectories;
     private boolean ignoreDotFiles;
     private boolean includeInformation;
+    private boolean addStartingWildcard;
+    private boolean addEndingWildcard;
 
     public String getStartingPath() {
         return startingPath;
@@ -58,5 +60,21 @@ public abstract class LayerMeta {
 
     public void setLayersNames(Set<String> layersNames) {
         this.layersNames = layersNames;
+    }
+
+    public boolean isAddStartingWildcard() {
+        return addStartingWildcard;
+    }
+
+    public void setAddStartingWildcard(boolean addStartingWildcard) {
+        this.addStartingWildcard = addStartingWildcard;
+    }
+
+    public boolean isAddEndingWildcard() {
+        return addEndingWildcard;
+    }
+
+    public void setAddEndingWildcard(boolean addEndingWildcard) {
+        this.addEndingWildcard = addEndingWildcard;
     }
 }

@@ -53,7 +53,8 @@ public abstract class LayerProcessor {
         Map<String, String> layerFilesMapping = new LinkedHashMap<>();
         Map<String, String> layerPhysicalFilesMapping = new LinkedHashMap<>();
 
-        List<String> refinedRegexList = refineRegexList(meta.getStartingPath(), meta.getRegexList());
+        List<String> refinedRegexList = refineRegexList(meta.getStartingPath(), meta.getRegexList(),
+                meta.isAddStartingWildcard(), meta.isAddEndingWildcard());
 
         Set<String> layersToSkip = new HashSet<>();
         for (String layerName : meta.getLayersNames()) {
@@ -188,16 +189,15 @@ public abstract class LayerProcessor {
         return result;
     }
 
-    protected List<String> refineRegexList(final String startingDir, final List<String> regexList){
+    protected List<String> refineRegexList(final String startingDir, final List<String> regexList,
+                                           boolean addStartingWildcard, boolean addEndingWildcard){
         List<String> result = new ArrayList<>();
 
         for (String regex:regexList){
-            if(regex.startsWith("^")){
-            } else {
+            if(!regex.startsWith("^") && addStartingWildcard){
                 regex = getStartingDir(startingDir).concat(".*".concat(regex));
             }
-            if(regex.endsWith("$")){
-            } else {
+            if(!regex.endsWith("$") && addEndingWildcard){
                 regex = regex.concat(".*");
             }
             result.add(regex);

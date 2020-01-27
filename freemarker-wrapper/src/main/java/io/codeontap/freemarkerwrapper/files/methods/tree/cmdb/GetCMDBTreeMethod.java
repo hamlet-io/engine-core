@@ -36,6 +36,8 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
         boolean ignoreDotFiles = Boolean.TRUE;
         boolean includeCMDBInformation = Boolean.FALSE;
         boolean useCMDBPrefix = Boolean.FALSE;
+        boolean addStartingWildcard = Boolean.TRUE;
+        boolean addEndingWildcard = Boolean.TRUE;
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
@@ -48,12 +50,14 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
                 ignoreDotDirectories = ((TemplateBooleanModel) options.get("IgnoreDotDirectories")).getAsBoolean();
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
                 ignoreDotFiles = ((TemplateBooleanModel) options.get("IgnoreDotFiles")).getAsBoolean();
-
             } else if ("IncludeCMDBInformation".equalsIgnoreCase(key.toString())){
                 includeCMDBInformation = ((TemplateBooleanModel) options.get("IncludeCMDBInformation")).getAsBoolean();
-
             } else if ("UseCMDBPrefix".equalsIgnoreCase(key.toString())){
                 useCMDBPrefix = ((TemplateBooleanModel) options.get("UseCMDBPrefix")).getAsBoolean();
+            } else if ("AddStartingWildcard".equalsIgnoreCase(key.toString())){
+                addStartingWildcard = ((TemplateBooleanModel) options.get("AddStartingWildcard")).getAsBoolean();
+            } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
+                addEndingWildcard = ((TemplateBooleanModel) options.get("AddEndingWildcard")).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -83,6 +87,8 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
             cmdbMeta.setIgnoreDotFiles(ignoreDotFiles);
             cmdbMeta.setIncludeInformation(includeCMDBInformation);
             cmdbMeta.setUseCMDBPrefix(useCMDBPrefix);
+            cmdbMeta.setAddStartingWildcard(addStartingWildcard);
+            cmdbMeta.setAddEndingWildcard(addEndingWildcard);
             result = cmdbProcessor.getLayerTree(cmdbMeta);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
