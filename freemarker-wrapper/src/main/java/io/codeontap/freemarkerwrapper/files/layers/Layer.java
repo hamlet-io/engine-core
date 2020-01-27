@@ -7,6 +7,7 @@ public abstract class Layer {
     protected String name;
     protected String path;
     protected String fileSystemPath;
+    protected boolean skip;
 
     public String getName() {
         return name;
@@ -30,6 +31,14 @@ public abstract class Layer {
 
     public void setFileSystemPath(String fileSystemPath) {
         this.fileSystemPath = fileSystemPath;
+    }
+
+    public boolean isSkip() {
+        return skip;
+    }
+
+    public void setSkip(boolean skip) {
+        this.skip = skip;
     }
 
     public Layer(String name, String path, String fileSystemPath) {

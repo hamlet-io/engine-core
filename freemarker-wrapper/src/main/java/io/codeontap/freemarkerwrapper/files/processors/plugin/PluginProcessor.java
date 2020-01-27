@@ -22,6 +22,11 @@ public class PluginProcessor extends LayerProcessor {
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
         PluginMeta pluginMeta = (PluginMeta) meta;
         fileSystem = new HashMap<>();
+
+        if(!meta.getStartingPath().startsWith("/")){
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+
         for (String layer : pluginMeta.getLayers()) {
             if(!Files.isDirectory(Paths.get(layer))) {
                 throw new RunFreeMarkerException(
@@ -38,6 +43,7 @@ public class PluginProcessor extends LayerProcessor {
         } else {
             meta.setLayersNames(layerMap.keySet());
         }
+
     }
 
     @Override

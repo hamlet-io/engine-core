@@ -282,6 +282,100 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
+    public void getPluginTree3() throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (getEngineTemplate3).getBytes());
+
+        createFile(pluginsPath,"aws/aws/test", "test.json", "{}");
+        createFile(pluginsPath,"azure/azure/test", "test.json", "{}");
+        createFile(pluginsPath,"test/test/test", "test.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("Name : aws");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : test");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        /*input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/aws"),
+                pluginsPath.concat("/test/test")
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : aws");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/test"),
+                pluginsPath.concat("/test/azure"),
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("Name : aws");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());*/
+
+    }
+
+    @Test
     public void getCMDBs() throws IOException, TemplateException{
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
@@ -439,6 +533,82 @@ public class GetCMDBTreeMethodTest {
         System.out.write(output.getBytes());
     }
 
+    @Test
+    public void testLookupDir2() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (getFileTreeAccountsTemplate2).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("File : \\/.cmdb");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        input.put("CMDBNames", Arrays.asList(new String[]{ "api", "almv2", "accounts", }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("File : \\/products\\/api\\/.cmdb");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        input.put("CMDBNames", Arrays.asList(new String[]{ "almv2", "accounts", "api", }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("File : \\/products\\/almv2\\/.cmdb");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        input.put("CMDBNames", Arrays.asList(new String[]{ "almv2", "api", }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("File : \\/.cmdb");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+    }
+
     private void createPlugin(String cmdbName){
         File accountsDir = new File(pluginsPath.concat("/").concat(cmdbName));
         if (!accountsDir.exists()) accountsDir.mkdirs();
@@ -514,6 +684,28 @@ public class GetCMDBTreeMethodTest {
             "[/#list]\n" +
             "[/#list]\n";
 
+    private final String getEngineTemplate3 = "[#ftl]\n" +
+            "[#assign regex=[\"test.json\"]]\n" +
+            "[#assign candidates =\n" +
+            "  getPluginTree(\n" +
+            "    \"/aws/test\",\n" +
+            "    {\n" +
+            "        \"Regex\" : regex,\n" +
+            "        \"IgnoreDotDirectories\" : false,\n" +
+            "        \"IgnoreDotFiles\" : false,\n" +
+            "        \"IncludePluginInformation\" : true\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "[#list candidates as candidate ]\n" +
+            "[#list candidate as property,value ]\n" +
+            "${property} : [#if (value?is_boolean || value?is_number)]${value?c}[#elseif value?is_hash]#hash#[#elseif value?is_sequence]#is_sequence#[#else]${value}[/#if]\n" +
+            "[#if property==\"Plugin\"]\n" +
+            "Name : ${value.Name}\n" +
+            "File : ${value.File}\n" +
+            "[/#if]\n" +
+            "[/#list]\n" +
+            "[/#list]\n";
+
     private final String getCMDBsTemplateFileActiveOnly = "[#ftl]\n" +
             "\n" +
             "\n" +
@@ -550,6 +742,27 @@ public class GetCMDBTreeMethodTest {
             "[#assign candidates =\n" +
             "  getFileTree(\n" +
             "    \"/\",\n" +
+            "    {\n" +
+            "        \"Regex\" : regex,\n" +
+            "        \"IgnoreDotDirectories\" : false,\n" +
+            "        \"IgnoreDotFiles\" : false,\n" +
+            "\t\"IncludeCMDBInformation\" : true\t,\n" +
+            "\t\"UseCMDBPrefix\" : false\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "[#list candidates as candidate ]\n" +
+            "[#list candidate as property,value ]\n" +
+            "${property} : [#if (value?is_boolean || value?is_number)]${value?c}[#elseif value?is_hash]#hash#[#elseif value?is_sequence]#is_sequence#[#else]${value}[/#if]\n" +
+            "[/#list]\n" +
+            "[/#list]\n" +
+            "\n";
+
+    private final String getFileTreeAccountsTemplate2 = "[#ftl]\n" +
+            "\n" +
+            "[#assign regex=\".cmdb\"]\n" +
+            "[#assign candidates =\n" +
+            "  getFileTree(\n" +
+            "    \"products/api\",\n" +
             "    {\n" +
             "        \"Regex\" : regex,\n" +
             "        \"IgnoreDotDirectories\" : false,\n" +

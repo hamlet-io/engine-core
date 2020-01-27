@@ -55,10 +55,43 @@ public abstract class LayerProcessor {
 
         List<String> refinedRegexList = refineRegexList(meta.getStartingPath(), meta.getRegexList());
 
+        Set<String> layersToSkip = new HashSet<>();
+        for (String layerName : meta.getLayersNames()) {
+            Layer layer = layerMap.get(layerName);
+            /**
+             * Check is starting path exists in a layer
+             */
+            boolean skipLayer = true;
+            /**
+             * Don't skip a layer if its path starts with a starting path
+             * layer path - /products/api
+             * starting path - /products
+             */
+            if(layer.getPath().startsWith(meta.getStartingPath())){
+                skipLayer = false;
+            } else if(meta.getStartingPath().startsWith(layer.getPath())){
+                /**
+                 * Don't skip a layer if a starting path starts with its path and the resolved path exists
+                 * layer path - /products/api
+                 * starting path - /products/api/config
+                 */
+                String path = StringUtils.replaceOnce(meta.getStartingPath(),layer.getPath(), layer.getFileSystemPath());
+                if (Files.isDirectory(Paths.get(path))){
+                   skipLayer = false;
+                }
+            }
+            if (skipLayer){
+                layersToSkip.add(layerName);
+            }
+        }
+
         for (String regex:refinedRegexList){
             boolean matchFound = false;
             for (String layerName : meta.getLayersNames()) {
                 Layer layer = layerMap.get(layerName);
+                if (layersToSkip.contains(layerName)){
+                    continue;
+                }
 
                 // get physical starting dir for the current layer
                 for (Path file : getFilesPerLayer(meta, layer)) {
