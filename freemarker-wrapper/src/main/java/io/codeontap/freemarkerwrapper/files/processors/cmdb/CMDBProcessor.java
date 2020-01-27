@@ -25,7 +25,7 @@ public class CMDBProcessor extends LayerProcessor {
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
         CMDBMeta cmdbMeta = (CMDBMeta)meta;
         Set<String> cmdbNames = new LinkedHashSet<>();
-        if(!meta.getStartingPath().startsWith("/")){
+        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
 

@@ -23,7 +23,7 @@ public class PluginProcessor extends LayerProcessor {
         PluginMeta pluginMeta = (PluginMeta) meta;
         fileSystem = new HashMap<>();
 
-        if(!meta.getStartingPath().startsWith("/")){
+        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
 
