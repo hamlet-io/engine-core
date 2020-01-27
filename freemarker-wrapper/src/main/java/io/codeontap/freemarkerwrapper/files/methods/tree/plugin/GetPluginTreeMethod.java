@@ -34,6 +34,8 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
         boolean ignoreDotDirectories = Boolean.TRUE;
         boolean ignoreDotFiles = Boolean.TRUE;
         boolean includePluginInformation = Boolean.FALSE;
+        boolean addStartingWildcard = Boolean.TRUE;
+        boolean addEndingWildcard = Boolean.TRUE;
 
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
@@ -49,7 +51,10 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
                 ignoreDotFiles = ((TemplateBooleanModel) options.get("IgnoreDotFiles")).getAsBoolean();
             } else if ("IncludePluginInformation".equalsIgnoreCase(key.toString())){
                 includePluginInformation = ((TemplateBooleanModel) options.get("IncludePluginInformation")).getAsBoolean();
-
+            } else if ("AddStartingWildcard".equalsIgnoreCase(key.toString())){
+                addStartingWildcard = ((TemplateBooleanModel) options.get("AddStartingWildcard")).getAsBoolean();
+            } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
+                addEndingWildcard = ((TemplateBooleanModel) options.get("AddEndingWildcard")).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -75,6 +80,8 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
             meta.setIgnoreDotDirectories(ignoreDotDirectories);
             meta.setIgnoreDotFiles(ignoreDotFiles);
             meta.setIncludeInformation(includePluginInformation);
+            meta.setAddStartingWildcard(addStartingWildcard);
+            meta.setAddEndingWildcard(addEndingWildcard);
             result = pluginProcessor.getLayerTree(meta);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
