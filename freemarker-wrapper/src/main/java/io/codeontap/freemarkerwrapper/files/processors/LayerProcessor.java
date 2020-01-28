@@ -138,7 +138,7 @@ public abstract class LayerProcessor {
                     if(array.length > 0) {
                         String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
                         if (StringUtils.startsWith(firstLine, "[#ftl]")) {
-                            jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(path)));
+                            jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(key)));
                         } else if(file.toString().toLowerCase().endsWith(".json")){
                             JsonStructure result = null;
                             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
