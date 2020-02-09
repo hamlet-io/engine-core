@@ -23,10 +23,6 @@ public class PluginProcessor extends LayerProcessor {
         PluginMeta pluginMeta = (PluginMeta) meta;
         fileSystem = new HashMap<>();
 
-        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
-            meta.setStartingPath("/".concat(meta.getStartingPath()));
-        }
-
         for (String layer : pluginMeta.getLayers()) {
             if(!Files.isDirectory(Paths.get(layer))) {
                 throw new RunFreeMarkerException(
