@@ -43,6 +43,10 @@ public abstract class LayerProcessor {
     public Set<JsonObject> getLayerTree(LayerMeta meta, boolean firstResultOnly) throws RunFreeMarkerException{
         Set<JsonObject> output = new LinkedHashSet<>();
 
+        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+
         createLayerFileSystem(meta);
 
         if(fileSystem == null){
@@ -68,18 +72,13 @@ public abstract class LayerProcessor {
              * layer path - /products/api
              * starting path - /products
              */
-            if(layer.getPath().startsWith(meta.getStartingPath())){
-                skipLayer = false;
-            } else if(meta.getStartingPath().startsWith(layer.getPath())){
                 /**
                  * Don't skip a layer if a starting path starts with its path and the resolved path exists
                  * layer path - /products/api
                  * starting path - /products/api/config
                  */
-                String path = StringUtils.replaceOnce(meta.getStartingPath(),layer.getPath(), layer.getFileSystemPath());
-                if (Files.isDirectory(Paths.get(path))){
-                   skipLayer = false;
-                }
+            if (isDirectoryExistsOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath())){
+                skipLayer = false;
             }
             if (skipLayer){
                 layersToSkip.add(layerName);
@@ -194,8 +193,11 @@ public abstract class LayerProcessor {
         List<String> result = new ArrayList<>();
 
         for (String regex:regexList){
-            if(!regex.startsWith("^") && addStartingWildcard){
-                regex = getStartingDir(startingDir).concat(".*".concat(regex));
+            if(!regex.startsWith("^")){
+                if (addStartingWildcard){
+                    regex = ".*".concat(regex);
+                }
+                regex = getStartingDir(startingDir).concat(regex);
             }
             if(!regex.endsWith("$") && addEndingWildcard){
                 regex = regex.concat(".*");
@@ -258,5 +260,25 @@ public abstract class LayerProcessor {
 
         }
         return files;
+    }
+
+    private boolean isDirectoryExistsOnFileSystem(String startingPath, String layerPath, String fileSystemPath){
+        startingPath = forceUnixStyle(startingPath);
+        fileSystemPath = forceUnixStyle(fileSystemPath);
+        if (StringUtils.equalsIgnoreCase("/", layerPath)){
+            fileSystemPath = fileSystemPath.concat("/");
+        } else {
+            layerPath = forceUnixStyle(layerPath);
+        }
+
+        if(layerPath.startsWith(startingPath)){
+            return true;
+        }
+        String path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
+        if(Files.isDirectory(Paths.get(path))){
+            return true;
+        } else {
+            return false;
+        }
     }
 }
