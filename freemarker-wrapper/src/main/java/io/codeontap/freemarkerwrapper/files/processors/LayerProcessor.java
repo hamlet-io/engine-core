@@ -199,8 +199,11 @@ public abstract class LayerProcessor {
                 }
                 regex = StringUtils.join("^",getStartingDir(startingDir),regex);
             }
-            if(!regex.endsWith("$") && addEndingWildcard){
-                regex = regex.concat(".*");
+            if(!regex.endsWith("$")){
+                if (addEndingWildcard){
+                    regex = regex.concat(".*");
+                }
+                regex = regex.concat("$");
             }
             result.add(regex);
         }
