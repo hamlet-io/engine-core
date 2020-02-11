@@ -817,6 +817,8 @@ public class GetCMDBTreeMethodTest {
             "        \"Regex\" : regex,\n" +
             "        \"IgnoreDotDirectories\" : false,\n" +
             "        \"IgnoreDotFiles\" : false,\n" +
+            "        \"AddStartingWildcard\" : true,\n" +
+            "        \"AddEndingWildcard\" : true,\n" +
             "        \"IncludePluginInformation\" : true\n" +
             "    }\n" +
             "  ) ]\n" +

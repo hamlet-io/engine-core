@@ -41,23 +41,23 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
-                Object regex = options.get("Regex");
+                Object regex = options.get(key.toString());
                 if(regex instanceof TemplateSequenceModel)
                     regexSequence = (TemplateSequenceModel)regex;
                 else if(regex instanceof SimpleScalar)
                     regexScalar = (SimpleScalar)regex;
             } else if ("IgnoreDotDirectories".equalsIgnoreCase(key.toString())){
-                ignoreDotDirectories = ((TemplateBooleanModel) options.get("IgnoreDotDirectories")).getAsBoolean();
+                ignoreDotDirectories = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
-                ignoreDotFiles = ((TemplateBooleanModel) options.get("IgnoreDotFiles")).getAsBoolean();
+                ignoreDotFiles = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("IncludeCMDBInformation".equalsIgnoreCase(key.toString())){
-                includeCMDBInformation = ((TemplateBooleanModel) options.get("IncludeCMDBInformation")).getAsBoolean();
+                includeCMDBInformation = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("UseCMDBPrefix".equalsIgnoreCase(key.toString())){
-                useCMDBPrefix = ((TemplateBooleanModel) options.get("UseCMDBPrefix")).getAsBoolean();
+                useCMDBPrefix = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("AddStartingWildcard".equalsIgnoreCase(key.toString())){
-                addStartingWildcard = ((TemplateBooleanModel) options.get("AddStartingWildcard")).getAsBoolean();
+                addStartingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
-                addEndingWildcard = ((TemplateBooleanModel) options.get("AddEndingWildcard")).getAsBoolean();
+                addEndingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
