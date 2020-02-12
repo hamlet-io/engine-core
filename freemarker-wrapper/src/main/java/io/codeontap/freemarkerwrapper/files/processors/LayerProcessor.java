@@ -12,10 +12,7 @@ import javax.json.stream.JsonParsingException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -255,12 +252,32 @@ public abstract class LayerProcessor {
         if(files == null) {
             Path startingDir = Paths.get(layer.getFileSystemPath());
             FileFinder.Finder finder = new FileFinder.Finder("*", meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
+            Integer depth = Integer.MAX_VALUE;
+            if(meta.getMaxDepth()!=null){
+                depth = meta.getMaxDepth();
+            }
             try {
-                Files.walkFileTree(startingDir, finder);
+                Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), depth, finder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             files = finder.done();
+            if(meta.getMinDepth()!=null){
+                Set<Path> filerByMinDepth = new HashSet<>();
+                filerByMinDepth.addAll(files);
+                for (Path path:filerByMinDepth){
+                    Path relative = path.relativize(startingDir);
+                    for(int i=1; i<meta.getMinDepth();i++){
+                        relative = relative.getParent();
+                        if(relative == null) {
+                            files.remove(path);
+                            break;
+                        }
+                    }
+                }
+            }
+
             filesPerLayer.put(layer.getName(), files);
 
         }
