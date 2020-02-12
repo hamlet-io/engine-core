@@ -100,9 +100,11 @@ public abstract class LayerProcessor {
                     Pattern p = Pattern.compile(regex);
                     Matcher m = p.matcher(layerPath);
                     if(m.matches()){
-                        layerFilesMapping.put(layerPath, path);
-                        layerPhysicalFilesMapping.put(path, layer.getName());
-                        matchFound = true;
+                        if(!layerFilesMapping.containsKey(layerPath)) {
+                            layerFilesMapping.put(layerPath, path);
+                            layerPhysicalFilesMapping.put(path, layer.getName());
+                            matchFound = true;
+                        }
                     }
                 }
                 if(firstResultOnly && matchFound)

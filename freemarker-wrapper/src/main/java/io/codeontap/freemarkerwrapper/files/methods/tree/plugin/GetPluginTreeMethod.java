@@ -82,7 +82,7 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
             meta.setIncludeInformation(includePluginInformation);
             meta.setAddStartingWildcard(addStartingWildcard);
             meta.setAddEndingWildcard(addEndingWildcard);
-            result = pluginProcessor.getLayerTree(meta);
+            result = pluginProcessor.getLayerTree(meta, false);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }

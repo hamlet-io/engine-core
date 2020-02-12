@@ -89,7 +89,7 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
             cmdbMeta.setUseCMDBPrefix(useCMDBPrefix);
             cmdbMeta.setAddStartingWildcard(addStartingWildcard);
             cmdbMeta.setAddEndingWildcard(addEndingWildcard);
-            result = cmdbProcessor.getLayerTree(cmdbMeta);
+            result = cmdbProcessor.getLayerTree(cmdbMeta, false);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
         }
