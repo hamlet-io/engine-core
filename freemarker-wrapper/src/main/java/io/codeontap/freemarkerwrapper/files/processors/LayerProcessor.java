@@ -74,7 +74,7 @@ public abstract class LayerProcessor {
                  * layer path - /products/api
                  * starting path - /products/api/config
                  */
-            if (isDirectoryExistsOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath())){
+            if (getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath())!=null){
                 skipLayer = false;
             }
             if (skipLayer){
@@ -182,7 +182,7 @@ public abstract class LayerProcessor {
 
     protected String forceUnixStyle(final String path){
         String result = StringUtils.replaceEachRepeatedly(path, new String[]{"\\", "//"}, new String[]{"/", "/"});
-        if(result.endsWith("/"))
+        if(!"/".equalsIgnoreCase(result) && result.endsWith("/"))
             result = StringUtils.substringBeforeLast(result,"/");
         return result;
     }
@@ -250,12 +250,20 @@ public abstract class LayerProcessor {
     private Set<Path> getFilesPerLayer(LayerMeta meta, Layer layer){
         Set<Path> files = filesPerLayer.get(layer.getName());
         if(files == null) {
-            Path startingDir = Paths.get(layer.getFileSystemPath());
+/*
+            Path startingDir = Paths.get(layer.getFileSystemPath().concat(meta.getStartingPath()));
+*/
+            Path startingDir = getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath());
             FileFinder.Finder finder = new FileFinder.Finder("*", meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
+            String relativeLayerPath = StringUtils.substringAfter(layer.getPath(), meta.getStartingPath());
+            int relativeLayerPathDepth = StringUtils.split(relativeLayerPath,"/").length;
             Integer depth = Integer.MAX_VALUE;
             if(meta.getMaxDepth()!=null){
                 depth = meta.getMaxDepth();
             }
+            depth -=relativeLayerPathDepth;
+            if(depth < 0)
+                return files;
             try {
                 Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), depth, finder);
             } catch (IOException e) {
@@ -267,14 +275,13 @@ public abstract class LayerProcessor {
                 Set<Path> filerByMinDepth = new HashSet<>();
                 filerByMinDepth.addAll(files);
                 for (Path path:filerByMinDepth){
-                    Path relative = path.relativize(startingDir);
-                    for(int i=1; i<meta.getMinDepth();i++){
-                        relative = relative.getParent();
-                        if(relative == null) {
-                            files.remove(path);
-                            break;
-                        }
+                    String layerFilePath = StringUtils.replaceOnce(path.toString(), Paths.get(layer.getFileSystemPath()).toString(), layer.getPath());
+                    String relativeLayerFilePath = StringUtils.substringAfter(layerFilePath, meta.getStartingPath());
+                    int relativeLayerFilePathDepth = StringUtils.split(relativeLayerFilePath,"/").length;
+                    if(relativeLayerFilePathDepth < meta.getMinDepth()) {
+                        files.remove(path);
                     }
+
                 }
             }
 
@@ -284,7 +291,7 @@ public abstract class LayerProcessor {
         return files;
     }
 
-    private boolean isDirectoryExistsOnFileSystem(String startingPath, String layerPath, String fileSystemPath){
+    private Path getDirectoryOnFileSystem(String startingPath, String layerPath, String fileSystemPath){
         startingPath = forceUnixStyle(startingPath);
         fileSystemPath = forceUnixStyle(fileSystemPath);
         if (StringUtils.equalsIgnoreCase("/", layerPath)){
@@ -292,15 +299,17 @@ public abstract class LayerProcessor {
         } else {
             layerPath = forceUnixStyle(layerPath);
         }
-
+        String path = null;
         if(layerPath.startsWith(startingPath)){
-            return true;
+            path = fileSystemPath;
         }
-        String path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
-        if(Files.isDirectory(Paths.get(path))){
-            return true;
+        else {
+            path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
+        }
+        if(path!= null && Files.isDirectory(Paths.get(path))){
+            return Paths.get(path);
         } else {
-            return false;
+            return null;
         }
     }
 }
