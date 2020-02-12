@@ -38,6 +38,9 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
         boolean useCMDBPrefix = Boolean.FALSE;
         boolean addStartingWildcard = Boolean.TRUE;
         boolean addEndingWildcard = Boolean.TRUE;
+        Number minDepth = null;
+        Number maxDepth = null;
+
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Regex".equalsIgnoreCase(key.toString())){
@@ -58,6 +61,10 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
                 addStartingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
                 addEndingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            } else if ("MinDepth".equalsIgnoreCase(key.toString())){
+                minDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
+            } else if ("MaxDepth".equalsIgnoreCase(key.toString())){
+                maxDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -89,6 +96,12 @@ public class GetCMDBTreeMethod implements TemplateMethodModelEx {
             cmdbMeta.setUseCMDBPrefix(useCMDBPrefix);
             cmdbMeta.setAddStartingWildcard(addStartingWildcard);
             cmdbMeta.setAddEndingWildcard(addEndingWildcard);
+            if (minDepth!=null){
+                cmdbMeta.setMinDepth(minDepth.intValue());
+            }
+            if (maxDepth!=null){
+                cmdbMeta.setMaxDepth(maxDepth.intValue());
+            }
             result = cmdbProcessor.getLayerTree(cmdbMeta, false);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();

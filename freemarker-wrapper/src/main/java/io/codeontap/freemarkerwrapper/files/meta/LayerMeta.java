@@ -14,6 +14,9 @@ public abstract class LayerMeta {
     private boolean addStartingWildcard;
     private boolean addEndingWildcard;
 
+    private Integer minDepth;
+    private Integer maxDepth;
+
     public String getStartingPath() {
         return startingPath;
     }
@@ -76,5 +79,21 @@ public abstract class LayerMeta {
 
     public void setAddEndingWildcard(boolean addEndingWildcard) {
         this.addEndingWildcard = addEndingWildcard;
+    }
+
+    public Integer getMinDepth() {
+        return minDepth;
+    }
+
+    public void setMinDepth(int minDepth) {
+        this.minDepth = minDepth;
+    }
+
+    public Integer getMaxDepth() {
+        return maxDepth;
+    }
+
+    public void setMaxDepth(Integer maxDepth) {
+        this.maxDepth = maxDepth;
     }
 }

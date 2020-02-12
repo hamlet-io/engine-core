@@ -36,6 +36,9 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
         boolean includePluginInformation = Boolean.FALSE;
         boolean addStartingWildcard = Boolean.TRUE;
         boolean addEndingWildcard = Boolean.TRUE;
+        Number minDepth = null;
+        Number maxDepth = null;
+
 
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
@@ -55,6 +58,10 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
                 addStartingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
                 addEndingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            } else if ("MinDepth".equalsIgnoreCase(key.toString())){
+                minDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
+            } else if ("MaxDepth".equalsIgnoreCase(key.toString())){
+                maxDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -82,6 +89,12 @@ public class GetPluginTreeMethod implements TemplateMethodModelEx {
             meta.setIncludeInformation(includePluginInformation);
             meta.setAddStartingWildcard(addStartingWildcard);
             meta.setAddEndingWildcard(addEndingWildcard);
+            if (minDepth!=null){
+                meta.setMinDepth(minDepth.intValue());
+            }
+            if (maxDepth!=null){
+                meta.setMaxDepth(maxDepth.intValue());
+            }
             result = pluginProcessor.getLayerTree(meta, false);
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
