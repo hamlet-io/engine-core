@@ -255,7 +255,7 @@ public abstract class LayerProcessor {
 */
             Path startingDir = getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath());
             FileFinder.Finder finder = new FileFinder.Finder("*", meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
-            String relativeLayerPath = StringUtils.substringAfter(layer.getPath(), meta.getStartingPath());
+            String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()));
             int relativeLayerPathDepth = StringUtils.split(relativeLayerPath,"/").length;
             Integer depth = Integer.MAX_VALUE;
             if(meta.getMaxDepth()!=null){
@@ -275,8 +275,8 @@ public abstract class LayerProcessor {
                 Set<Path> filerByMinDepth = new HashSet<>();
                 filerByMinDepth.addAll(files);
                 for (Path path:filerByMinDepth){
-                    String layerFilePath = StringUtils.replaceOnce(path.toString(), Paths.get(layer.getFileSystemPath()).toString(), layer.getPath());
-                    String relativeLayerFilePath = StringUtils.substringAfter(layerFilePath, meta.getStartingPath());
+                    String layerFilePath = StringUtils.replaceOnce(forceUnixStyle(path.toString()), forceUnixStyle(Paths.get(layer.getFileSystemPath()).toString()), forceUnixStyle(layer.getPath()));
+                    String relativeLayerFilePath = StringUtils.substringAfter(layerFilePath, forceUnixStyle(meta.getStartingPath()));
                     int relativeLayerFilePathDepth = StringUtils.split(relativeLayerFilePath,"/").length;
                     if(relativeLayerFilePathDepth < meta.getMinDepth()) {
                         files.remove(path);
