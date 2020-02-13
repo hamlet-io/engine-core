@@ -121,7 +121,9 @@ public abstract class LayerProcessor {
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
-            if(!Files.isDirectory(file)) {
+            if(Files.isDirectory(file)) {
+                jsonObjectBuilder.add("IsDirectory", Boolean.TRUE);
+            } else {
                 try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                     jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
                 } catch (IOException e) {
@@ -136,7 +138,7 @@ public abstract class LayerProcessor {
                     if(array.length > 0) {
                         String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
                         if (StringUtils.startsWith(firstLine, "[#ftl]")) {
-                            jsonObjectBuilder.add("Include", String.format("#include \"%s\"", forceUnixStyle(file.toString())));
+                            jsonObjectBuilder.add("IsTemplate", Boolean.TRUE);
                         } else if(file.toString().toLowerCase().endsWith(".json")){
                             JsonStructure result = null;
                             try (FileInputStream inputStream = new FileInputStream(file.toString())) {
