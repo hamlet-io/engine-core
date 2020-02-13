@@ -1053,6 +1053,156 @@ public class GetCMDBTreeMethodTest {
         System.out.write(output.getBytes());
     }
 
+    @Test
+    public void testLookupDirOptions1() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, false)).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
+        createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/path/3/test", "match", "[#ftl]");
+        createFile(cmdbsPath,"almv2/path/3/test/subdir", "match", "[#ftl]");
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "almv2", "api"  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("File : /products/almv2/path/3/test/match");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /products/almv2/path/3/test/subdir/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /products/api/path/2/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+    }
+
+    @Test
+    public void testLookupDirOptions2() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, true)).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
+        createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/path/3/test", "match", "[#ftl]");
+        createFile(cmdbsPath,"almv2/path/3/test/subdir", "match", "[#ftl]");
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "almv2", "api"  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("File : /products/almv2/path/3/test/match");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /products/almv2/path/3/test/subdir/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /products/api/path/2/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+    }
+
+    @Test
+    public void testLookupDirOptions3() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, true, false)).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
+        createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/path/3/test", "match", "[#ftl]");
+        createFile(cmdbsPath,"almv2/path/3/test/subdir", "match", "[#ftl]");
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2"  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("File : /products/almv2/path/3/test/match");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /products/almv2/path/3/test/subdir/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /products/api/path/2/match");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+    }
+
     private void createPlugin(String cmdbName){
         File accountsDir = new File(pluginsPath.concat("/").concat(cmdbName));
         if (!accountsDir.exists()) accountsDir.mkdirs();
@@ -1328,6 +1478,29 @@ public class GetCMDBTreeMethodTest {
             "        \"Regex\" : regex,\n" +
             "        \"IgnoreDotDirectories\" : false,\n" +
             "        \"IgnoreDotFiles\" : false,\n" +
+            "\t\"IncludeCMDBInformation\" : true\t,\n" +
+            "\t\"UseCMDBPrefix\" : false\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "[#list candidates as candidate ]\n" +
+            "[#list candidate as property,value ]\n" +
+            "${property} : [#if (value?is_boolean || value?is_number)]${value?c}[#elseif value?is_hash]#hash#[#elseif value?is_sequence]#is_sequence#[#else]${value}[/#if]\n" +
+            "[/#list]\n" +
+            "[/#list]\n" +
+            "\n";
+
+    private final String getFileTreeAccountsTemplateMatchOptions = "[#ftl]\n" +
+            "\n" +
+            "[#assign regex=\"match$\"]\n" +
+            "[#assign candidates =\n" +
+            "  getFileTree(\n" +
+            "    \"/\",\n" +
+            "    {\n" +
+            "        \"Regex\" : regex,\n" +
+            "        \"IgnoreDotDirectories\" : false,\n" +
+            "        \"IgnoreDotFiles\" : false,\n" +
+            "        \"StopAfterFirstMatch\" : %s,\n" +
+            "        \"IgnoreSubtreeAfterMatch\" : %s,\n" +
             "\t\"IncludeCMDBInformation\" : true\t,\n" +
             "\t\"UseCMDBPrefix\" : false\n" +
             "    }\n" +

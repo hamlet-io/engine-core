@@ -13,6 +13,8 @@ public abstract class LayerMeta {
     private boolean includeInformation;
     private boolean addStartingWildcard;
     private boolean addEndingWildcard;
+    private boolean stopAfterFirstMatch;
+    private boolean ignoreSubtreeAfterMatch;
 
     private Integer minDepth;
     private Integer maxDepth;
@@ -85,7 +87,7 @@ public abstract class LayerMeta {
         return minDepth;
     }
 
-    public void setMinDepth(int minDepth) {
+    public void setMinDepth(Integer minDepth) {
         this.minDepth = minDepth;
     }
 
@@ -96,4 +98,22 @@ public abstract class LayerMeta {
     public void setMaxDepth(Integer maxDepth) {
         this.maxDepth = maxDepth;
     }
+
+    public boolean isStopAfterFirstMatch() {
+        return stopAfterFirstMatch;
+    }
+
+    public void setStopAfterFirstMatch(boolean stopAfterFirstMatch) {
+        this.stopAfterFirstMatch = stopAfterFirstMatch;
+    }
+
+    public boolean isIgnoreSubtreeAfterMatch() {
+        return ignoreSubtreeAfterMatch;
+    }
+
+    public void setIgnoreSubtreeAfterMatch(boolean ignoreSubtreeAfterMatch) {
+        this.ignoreSubtreeAfterMatch = ignoreSubtreeAfterMatch;
+    }
+
+    public abstract String getIncludeInformationOptionName();
 }

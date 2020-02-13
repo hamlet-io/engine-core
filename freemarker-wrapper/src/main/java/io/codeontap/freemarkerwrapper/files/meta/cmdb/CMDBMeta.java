@@ -61,4 +61,9 @@ public class CMDBMeta extends LayerMeta {
     public void setActiveOnly(boolean activeOnly) {
         this.activeOnly = activeOnly;
     }
+
+    @Override
+    public String getIncludeInformationOptionName() {
+        return "IncludeCMDBInformation";
+    }
 }

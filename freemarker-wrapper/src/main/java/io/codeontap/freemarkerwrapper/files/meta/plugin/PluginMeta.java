@@ -15,4 +15,9 @@ public class PluginMeta extends LayerMeta {
     public void setLayers(List<String> layers) {
         this.layers = layers;
     }
+
+    @Override
+    public String getIncludeInformationOptionName() {
+        return "IncludePluginInformation";
+    }
 }

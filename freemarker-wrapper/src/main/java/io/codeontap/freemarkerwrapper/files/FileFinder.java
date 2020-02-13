@@ -15,8 +15,7 @@ package io.codeontap.freemarkerwrapper.files;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -29,7 +28,7 @@ public class FileFinder {
 
         private final PathMatcher matcher;
         private int numMatches = 0;
-        private Set<Path> matches;
+        private List<Path> matches;
         private boolean ignoreDotDirectories = true;
         private boolean ignoreDotFiles = true;
 
@@ -38,7 +37,7 @@ public class FileFinder {
             this.ignoreDotFiles = ignoreDotFiles;
             matcher = FileSystems.getDefault()
                     .getPathMatcher("glob:" + pattern);
-            matches = new HashSet<Path>();
+            matches = new ArrayList<>();
         }
 
         // Compares the glob pattern against
@@ -56,9 +55,10 @@ public class FileFinder {
 
         // Prints the total number of
         // matches to standard out.
-        public Set<Path> done() {
+        public List<Path> done() {
             /*System.out.println("Matched: "
                     + numMatches);*/
+            Collections.sort(matches);
             return matches;
         }
 

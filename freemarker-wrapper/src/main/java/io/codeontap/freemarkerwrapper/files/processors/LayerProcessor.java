@@ -24,7 +24,7 @@ public abstract class LayerProcessor {
 
     protected Map<String, String> fileSystem;
     protected Map<String, Layer> layerMap = new LinkedHashMap<>();
-    private Map<String, Set<Path>> filesPerLayer = new LinkedHashMap<>();
+    private Map<String, List<Path>> filesPerLayer = new LinkedHashMap<>();
 
     public abstract void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException;
     public abstract JsonObjectBuilder buildInformation(JsonObjectBuilder jsonObjectBuilder, Layer layer, Path file);
@@ -34,10 +34,8 @@ public abstract class LayerProcessor {
         createLayerFileSystem(meta);
         return buildLayers(meta).build();
     }
+
     public Set<JsonObject> getLayerTree(LayerMeta meta) throws RunFreeMarkerException{
-        return getLayerTree(meta, true);
-    }
-    public Set<JsonObject> getLayerTree(LayerMeta meta, boolean firstResultOnly) throws RunFreeMarkerException{
         Set<JsonObject> output = new LinkedHashSet<>();
 
         if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
@@ -101,10 +99,12 @@ public abstract class LayerProcessor {
                             layerFilesMapping.put(layerPath, path);
                             layerPhysicalFilesMapping.put(path, layer.getName());
                             matchFound = true;
+                            if(meta.isStopAfterFirstMatch() || meta.isIgnoreSubtreeAfterMatch())
+                                break;
                         }
                     }
                 }
-                if(firstResultOnly && matchFound)
+                if(meta.isStopAfterFirstMatch() && matchFound)
                     break;
             }
         }
@@ -249,8 +249,8 @@ public abstract class LayerProcessor {
         }
     }
 
-    private Set<Path> getFilesPerLayer(LayerMeta meta, Layer layer){
-        Set<Path> files = filesPerLayer.get(layer.getName());
+    private List<Path> getFilesPerLayer(LayerMeta meta, Layer layer){
+        List<Path> files = filesPerLayer.get(layer.getName());
         if(files == null) {
 /*
             Path startingDir = Paths.get(layer.getFileSystemPath().concat(meta.getStartingPath()));
@@ -271,19 +271,17 @@ public abstract class LayerProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             files = finder.done();
             if(meta.getMinDepth()!=null){
-                Set<Path> filerByMinDepth = new HashSet<>();
-                filerByMinDepth.addAll(files);
-                for (Path path:filerByMinDepth){
+                List<Path> list = new ArrayList<>();
+                list.addAll(files);
+                for (Path path:list){
                     String layerFilePath = StringUtils.replaceOnce(forceUnixStyle(path.toString()), forceUnixStyle(Paths.get(layer.getFileSystemPath()).toString()), forceUnixStyle(layer.getPath()));
                     String relativeLayerFilePath = StringUtils.substringAfter(layerFilePath, forceUnixStyle(meta.getStartingPath()));
                     int relativeLayerFilePathDepth = StringUtils.split(relativeLayerFilePath,"/").length;
                     if(relativeLayerFilePathDepth < meta.getMinDepth()) {
                         files.remove(path);
                     }
-
                 }
             }
 
