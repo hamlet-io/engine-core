@@ -277,9 +277,7 @@ public abstract class LayerProcessor {
     private List<Path> getFilesPerLayer(LayerMeta meta, Layer layer){
         List<Path> files = filesPerLayer.get(layer.getName());
         if(files == null) {
-/*
-            Path startingDir = Paths.get(layer.getFileSystemPath().concat(meta.getStartingPath()));
-*/
+            // search starting point optimisation, see https://github.com/codeontap/gen3-freemarker-wrapper/issues/22
             Path startingDir = getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath());
             FileFinder.Finder finder = new FileFinder.Finder("*", meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
             String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()));
@@ -288,6 +286,11 @@ public abstract class LayerProcessor {
             if(meta.getMaxDepth()!=null){
                 depth = meta.getMaxDepth();
             }
+            // adjust max depth based on layer path related to the starting path
+            // for example if starting path is set to /products
+            // and maxDepth=3 and layer path is /products/almv2
+            // depth needs to be decreased by 1
+            // as the layer one layer deeper on the layer filesystem than on physical one
             depth -=relativeLayerPathDepth;
             if(depth < 0)
                 return files;
@@ -304,18 +307,25 @@ public abstract class LayerProcessor {
                     String layerFilePath = StringUtils.replaceOnce(forceUnixStyle(path.toString()), forceUnixStyle(Paths.get(layer.getFileSystemPath()).toString()), forceUnixStyle(layer.getPath()));
                     String relativeLayerFilePath = StringUtils.substringAfter(layerFilePath, forceUnixStyle(meta.getStartingPath()));
                     int relativeLayerFilePathDepth = StringUtils.split(relativeLayerFilePath,"/").length;
+                    // exclude files that do not meet min depth requirements
+                    // relative layer path is checked here as well as for max depth
                     if(relativeLayerFilePathDepth < meta.getMinDepth()) {
                         files.remove(path);
                     }
                 }
             }
-
             filesPerLayer.put(layer.getName(), files);
-
         }
         return files;
     }
 
+    /**
+     * Returns the starting point on the physical file system
+     * @param startingPath
+     * @param layerPath
+     * @param fileSystemPath
+     * @return
+     */
     private Path getDirectoryOnFileSystem(String startingPath, String layerPath, String fileSystemPath){
         startingPath = forceUnixStyle(startingPath);
         fileSystemPath = forceUnixStyle(fileSystemPath);
@@ -326,9 +336,21 @@ public abstract class LayerProcessor {
         }
         String path = null;
         if(layerPath.startsWith(startingPath)){
+            // if layer path includes the staring path,
+            // the physical filesystem path is the starting point
+            // physical filesystem path - /var/opt/codeontap/api
+            // layer path - /products/api
+            // starting path - /products
+            // starting point - /var/opt/codeontap/api
             path = fileSystemPath;
         }
         else {
+            // if layer path does not include the staring path,
+            // relative layer path is added to the physical filesystem path to adjust the starting point
+            // physical filesystem path - /var/opt/codeontap/api
+            // layer path - /products/api
+            // starting path - /products/api/config
+            // starting point - /var/opt/codeontap/api/config
             path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
         }
         if(path!= null && Files.isDirectory(Paths.get(path))){
