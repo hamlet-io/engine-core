@@ -113,7 +113,7 @@ public class GetCMDBTreeMethodTest {
         input.put("getPluginTree", new GetPluginTreeMethod());
 
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (getEngineTemplate).getBytes());
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate, "test.json")).getBytes());
 
         createFile(pluginsPath,"test/aws", "test.json", "{}");
         createFile(pluginsPath,"test/azure", "test.json", "{}");
@@ -138,6 +138,12 @@ public class GetCMDBTreeMethodTest {
         while (m.find())
             count++;
         Assert.assertEquals(1, count);
+        p = Pattern.compile("ContentsAsJSON : #hash#");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
@@ -150,6 +156,7 @@ public class GetCMDBTreeMethodTest {
         consoleWriter.flush();
         freeMarkerTemplate.process(input, consoleWriter);
         output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("Name : aws");
         m = p.matcher(output);
         count = 0;
         while (m.find())
@@ -185,6 +192,100 @@ public class GetCMDBTreeMethodTest {
         Assert.assertEquals(0, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
             System.out.write(output.getBytes());
+    }
+
+    @Test
+    public void getPluginTreeYaml() throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate, "test.yaml")).getBytes());
+
+        createFile(pluginsPath,"test/aws", "test.yaml", "firstName: Billy\n");
+        createFile(pluginsPath,"test/azure", "test.yaml", "firstName Billy\n");
+        createFile(pluginsPath,"test/test", "test-1.yaml", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/aws"),
+                pluginsPath.concat("/test/azure"),
+                pluginsPath.concat("/test/test")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("Name : aws");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("ContentsAsJSON : #hash#");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/azure"),
+                pluginsPath.concat("/test/aws"),
+                pluginsPath.concat("/test/test")
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("Name : aws");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("ContentsAsJSON : #hash#");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/test"),
+                pluginsPath.concat("/test/azure"),
+                pluginsPath.concat("/test/aws"),
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("Name : test");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
     }
 
     @Test
@@ -960,7 +1061,7 @@ public class GetCMDBTreeMethodTest {
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
         createFile(cmdbsPath,"api/path/2/test", "test.json", "{}");
-        createFile(cmdbsPath,"almv2/path/3/test", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/path/3/test", "test.JSON", "{not a valid json}");
         createFile(cmdbsPath,"accounts", ".cmdb", content);
         createFile(cmdbsPath,"api", ".cmdb", "{}");
         createFile(cmdbsPath,"almv2", ".cmdb", "{}");
@@ -981,6 +1082,12 @@ public class GetCMDBTreeMethodTest {
         Pattern p = Pattern.compile("File : \\/.cmdb");
         Matcher m = p.matcher(output);
         int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("ContentsAsJSON : #hash#");
+        m = p.matcher(output);
+        count = 0;
         while (m.find())
             count++;
         Assert.assertEquals(0, count);
@@ -1235,7 +1342,7 @@ public class GetCMDBTreeMethodTest {
             "[/#list]";
 
     private final String getEngineTemplate = "[#ftl]\n" +
-            "[#assign regex=\"test.json\"]\n" +
+            "[#assign regex=\"%s\"]\n" +
             "[#assign candidates =\n" +
             "  getPluginTree(\n" +
             "    \"/\",\n" +
