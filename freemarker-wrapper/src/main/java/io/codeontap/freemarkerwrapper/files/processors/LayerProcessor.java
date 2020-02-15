@@ -1,5 +1,8 @@
 package io.codeontap.freemarkerwrapper.files.processors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.codeontap.freemarkerwrapper.files.FileFinder;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
@@ -9,9 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import javax.json.stream.JsonParsingException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -117,17 +118,22 @@ public abstract class LayerProcessor {
             Path file = files.get(key);
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
             String path = StringUtils.substringBeforeLast(key, file.getFileName().toString());
+            String extension = StringUtils.substringAfterLast(file.getFileName().toString(), ".");
             jsonObjectBuilder.add("File", key);
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
-            jsonObjectBuilder.add("Extension", StringUtils.substringAfterLast(file.getFileName().toString(), "."));
+            jsonObjectBuilder.add("Extension", extension);
             if(Files.isDirectory(file)) {
                 jsonObjectBuilder.add("IsDirectory", Boolean.TRUE);
             } else {
+                String contents=null;
                 try (FileInputStream inputStream = new FileInputStream(file.toString())) {
-                    jsonObjectBuilder.add("Contents", IOUtils.toString(inputStream));
+                    contents = IOUtils.toString(inputStream);
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                if(contents!=null){
+                    jsonObjectBuilder.add("Contents", contents);
                 }
                 try {
                     /**
@@ -139,16 +145,35 @@ public abstract class LayerProcessor {
                         String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
                         if (StringUtils.startsWith(firstLine, "[#ftl]")) {
                             jsonObjectBuilder.add("IsTemplate", Boolean.TRUE);
-                        } else if(file.toString().toLowerCase().endsWith(".json")){
-                            JsonStructure result = null;
-                            try (FileInputStream inputStream = new FileInputStream(file.toString())) {
-                                JsonReader reader = Json.createReader(inputStream);
-                                JsonStructure jsonStructure = reader.read();
-                                reader.close();
-                                jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
-                            } catch (JsonParsingException e) {
-                                //do nothing
-                                System.err.println(String.format("Unable to parse json file %s. Error details: %s", file, e.getMessage()));
+                        } else {
+                            JsonReader reader = null;
+                            switch (extension.toLowerCase()){
+                                case "json":
+                                    reader = Json.createReader(new StringReader(contents));
+                                    break;
+                                case "yaml":
+                                case "yml":
+                                    try {
+                                        ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+                                        Object obj = yamlReader.readValue(contents, Object.class);
+                                        ObjectMapper jsonWriter = new ObjectMapper();
+                                        String json = jsonWriter.writeValueAsString(obj);
+                                        reader = Json.createReader(new StringReader(json));
+                                    } catch (JsonProcessingException e) {
+                                        //do nothing
+                                        System.err.println(String.format("Unable to convert yaml file %s to json. Error details: %s", file, e.getMessage()));
+                                    }
+                                    break;
+                            }
+                            if (reader!=null){
+                                try {
+                                    JsonStructure jsonStructure = reader.read();
+                                    reader.close();
+                                    jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
+                                } catch (JsonException e) {
+                                    //do nothing
+                                    System.err.println(String.format("Unable to parse json file %s. Error details: %s", file, e.getMessage()));
+                                }
                             }
                         }
                     }
