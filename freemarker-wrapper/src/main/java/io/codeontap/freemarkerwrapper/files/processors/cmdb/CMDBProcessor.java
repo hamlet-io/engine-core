@@ -16,9 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * TODO: add staringPath processing
- */
 public class CMDBProcessor extends LayerProcessor {
 
 
@@ -55,7 +52,7 @@ public class CMDBProcessor extends LayerProcessor {
                         throw new RunFreeMarkerException(
                                 String.format("Unable to read path \"%s\" for CMDB lookup", lookupDir));
                     }
-                    FileFinder.Finder cmdbFilefinder = new FileFinder.Finder(".cmdb", false, false);
+                    FileFinder.Finder cmdbFilefinder = new FileFinder.Finder(".cmdb", true, false);
                     try {
                         Files.walkFileTree(Paths.get(lookupDir), cmdbFilefinder);
                     } catch (IOException e) {
