@@ -14,9 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * TODO: add staringPath processing
- */
 public class PluginProcessor extends LayerProcessor {
     @Override
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {

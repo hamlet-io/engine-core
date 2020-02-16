@@ -6,7 +6,7 @@
 
     <artifactId>freemarker-wrapper</artifactId>
     <groupId>io.codeontap</groupId>
-    <version>1.10.8</version>
+    <version>1.10.9</version>
     <build>
         <plugins>
             <plugin>

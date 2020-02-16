@@ -11,16 +11,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
-import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * TODO: add staringPath processing
- */
 public abstract class LayerProcessor {
 
     protected Map<String, String> fileSystem;
@@ -292,7 +288,7 @@ public abstract class LayerProcessor {
             // depth needs to be decreased by 1
             // as the layer one layer deeper on the layer filesystem than on physical one
             depth -=relativeLayerPathDepth;
-            if(depth < 0)
+            if(depth <= 0)
                 return files;
             try {
                 Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), depth, finder);
@@ -334,9 +330,9 @@ public abstract class LayerProcessor {
         } else {
             layerPath = forceUnixStyle(layerPath);
         }
-        String path = null;
+        String path;
         if(layerPath.startsWith(startingPath)){
-            // if layer path includes the staring path,
+            // if layer path includes the starting path,
             // the physical filesystem path is the starting point
             // physical filesystem path - /var/opt/codeontap/api
             // layer path - /products/api
@@ -345,13 +341,17 @@ public abstract class LayerProcessor {
             path = fileSystemPath;
         }
         else {
-            // if layer path does not include the staring path,
+            // if layer path does not include the starting path,
             // relative layer path is added to the physical filesystem path to adjust the starting point
             // physical filesystem path - /var/opt/codeontap/api
             // layer path - /products/api
             // starting path - /products/api/config
             // starting point - /var/opt/codeontap/api/config
-            path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
+            if(startingPath.startsWith(layerPath)) {
+                path = StringUtils.replaceOnce(startingPath, layerPath, fileSystemPath);
+            } else {
+                path = null;
+            }
         }
         if(path!= null && Files.isDirectory(Paths.get(path))){
             return Paths.get(path);
