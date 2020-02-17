@@ -48,6 +48,7 @@ public abstract class LayerProcessor {
 
         Map<String, Path> files = new LinkedHashMap<>();
         Map<String, String> layerFilesMapping = new LinkedHashMap<>();
+        Set<String> layerFilesMappingCaseInsensitive = new HashSet<>();
         Map<String, String> layerPhysicalFilesMapping = new LinkedHashMap<>();
 
         List<String> refinedRegexList = refineRegexList(meta.getStartingPath(), meta.getRegexList(),
@@ -79,24 +80,41 @@ public abstract class LayerProcessor {
         }
 
         for (String regex:refinedRegexList){
-            boolean matchFound = false;
             for (String layerName : meta.getLayersNames()) {
                 Layer layer = layerMap.get(layerName);
                 if (layersToSkip.contains(layerName)){
                     continue;
                 }
 
-                Pattern p = Pattern.compile(regex);
+                boolean matchFound = false;
+                Pattern p = null;
+                if(meta.isCaseSensitive()){
+                    p = Pattern.compile(regex);
+                } else {
+                    p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+                }
+
                 // get physical starting dir for the current layer
                 for (Path file : getFilesPerLayer(meta, layer)) {
                     String path = file.toString();
                     String layerPath = forceUnixStyle(StringUtils.replaceOnce(path, Paths.get(layer.getFileSystemPath()).toString(), layer.getPath()));
                     Matcher m = p.matcher(layerPath);
                     if(m.matches()){
-                        if(!layerFilesMapping.containsKey(layerPath)) {
+                        if(meta.isCaseSensitive()){
+                            if(!layerFilesMapping.containsKey(layerPath)) {
+                                matchFound = true;
+                            }
+                        } else {
+                            String layerPathLowerCase = layerPath.toLowerCase();
+                            if (!layerFilesMappingCaseInsensitive.contains(layerPathLowerCase)){
+                                matchFound = true;
+                                layerFilesMappingCaseInsensitive.add(layerPathLowerCase);
+                            }
+                        }
+                        if(matchFound) {
                             layerFilesMapping.put(layerPath, path);
                             layerPhysicalFilesMapping.put(path, layer.getName());
-                            matchFound = true;
+
                             if(meta.isStopAfterFirstMatch() || meta.isIgnoreSubtreeAfterMatch())
                                 break;
                         }

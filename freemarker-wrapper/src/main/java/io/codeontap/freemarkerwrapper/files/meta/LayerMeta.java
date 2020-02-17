@@ -19,6 +19,8 @@ public abstract class LayerMeta {
     private Integer minDepth;
     private Integer maxDepth;
 
+    private boolean caseSensitive;
+
     public String getStartingPath() {
         return startingPath;
     }
@@ -116,4 +118,12 @@ public abstract class LayerMeta {
     }
 
     public abstract String getIncludeInformationOptionName();
+
+    public boolean isCaseSensitive() {
+        return caseSensitive;
+    }
+
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+    }
 }

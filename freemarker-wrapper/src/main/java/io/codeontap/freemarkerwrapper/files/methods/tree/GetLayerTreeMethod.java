@@ -43,6 +43,7 @@ public abstract class GetLayerTreeMethod {
         Number minDepth = null;
         Number maxDepth = null;
         boolean includeInformation = Boolean.FALSE;
+        boolean caseSensitive = Boolean.FALSE;
 
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
@@ -70,6 +71,8 @@ public abstract class GetLayerTreeMethod {
                 maxDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
             } else if (meta.getIncludeInformationOptionName().equalsIgnoreCase(key.toString())) {
                 includeInformation = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            } else if ("CaseSensitive".equalsIgnoreCase(key.toString())){
+                caseSensitive = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -100,6 +103,7 @@ public abstract class GetLayerTreeMethod {
         if (maxDepth!=null){
             meta.setMaxDepth(maxDepth.intValue());
         }
+        meta.setCaseSensitive(caseSensitive);
     }
 
     public TemplateModel process() {

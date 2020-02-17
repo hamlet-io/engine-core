@@ -115,7 +115,7 @@ public class GetCMDBTreeMethodTest {
         String fileName = templatesPath.concat("/file.ftl");
         Files.write(Paths.get(fileName), (String.format(getEngineTemplate, "test.json")).getBytes());
 
-        createFile(pluginsPath,"test/aws", "test.json", "{}");
+        createFile(pluginsPath,"test/aws", "test.JSON", "{}");
         createFile(pluginsPath,"test/azure", "test.json", "{}");
         createFile(pluginsPath,"test/test", "test-1.json", "{}");
 
@@ -419,6 +419,100 @@ public class GetCMDBTreeMethodTest {
         while (m.find())
             count++;
         Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : test");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+        /*input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/aws"),
+                pluginsPath.concat("/test/test")
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : aws");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/test"),
+                pluginsPath.concat("/test/azure"),
+        }));
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
+        freeMarkerTemplate.process(input, consoleWriter);
+        output = new String(byteArrayOutputStream.toByteArray());
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("Name : aws");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());*/
+
+    }
+
+    @Test
+    public void getPluginTreeCaseSensitive() throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (getEngineTemplateCaseSensitive).getBytes());
+
+        createFile(pluginsPath,"aws/aws/test", "test.JSON", "{}");
+        createFile(pluginsPath,"azure/azure/test", "test.json", "{}");
+        createFile(pluginsPath,"test/test/test", "TEST.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("Name : aws");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("Name : azure");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
         p = Pattern.compile("Name : test");
         m = p.matcher(output);
         count = 0;
@@ -1397,6 +1491,29 @@ public class GetCMDBTreeMethodTest {
             "        \"IgnoreDotDirectories\" : false,\n" +
             "        \"IgnoreDotFiles\" : false,\n" +
             "        \"IncludePluginInformation\" : true\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "[#list candidates as candidate ]\n" +
+            "[#list candidate as property,value ]\n" +
+            "${property} : [#if (value?is_boolean || value?is_number)]${value?c}[#elseif value?is_hash]#hash#[#elseif value?is_sequence]#is_sequence#[#else]${value}[/#if]\n" +
+            "[#if property==\"Plugin\"]\n" +
+            "Name : ${value.Name}\n" +
+            "File : ${value.File}\n" +
+            "[/#if]\n" +
+            "[/#list]\n" +
+            "[/#list]\n";
+
+    private final String getEngineTemplateCaseSensitive = "[#ftl]\n" +
+            "[#assign regex=[\"test.json\"]]\n" +
+            "[#assign candidates =\n" +
+            "  getPluginTree(\n" +
+            "    \"/\",\n" +
+            "    {\n" +
+            "        \"Regex\" : regex,\n" +
+            "        \"IgnoreDotDirectories\" : false,\n" +
+            "        \"IgnoreDotFiles\" : false,\n" +
+            "        \"IncludePluginInformation\" : true,\n" +
+            "        \"CaseSensitive\" : true\n" +
             "    }\n" +
             "  ) ]\n" +
             "[#list candidates as candidate ]\n" +
