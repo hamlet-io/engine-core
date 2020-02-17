@@ -16,6 +16,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public abstract class LayerProcessor {
 
@@ -85,11 +86,11 @@ public abstract class LayerProcessor {
                     continue;
                 }
 
+                Pattern p = Pattern.compile(regex);
                 // get physical starting dir for the current layer
                 for (Path file : getFilesPerLayer(meta, layer)) {
                     String path = file.toString();
                     String layerPath = forceUnixStyle(StringUtils.replaceOnce(path, Paths.get(layer.getFileSystemPath()).toString(), layer.getPath()));
-                    Pattern p = Pattern.compile(regex);
                     Matcher m = p.matcher(layerPath);
                     if(m.matches()){
                         if(!layerFilesMapping.containsKey(layerPath)) {
@@ -136,39 +137,47 @@ public abstract class LayerProcessor {
                      * Check if a file is a freemarker template - starts with [#ftl]
                      * if not, attempt to parse it as a json file
                      */
-                    Object[] array = Files.lines(file).limit(1).toArray();
-                    if(array.length > 0) {
-                        String firstLine = Files.lines(file).limit(1).toArray()[0].toString();
-                        if (StringUtils.startsWith(firstLine, "[#ftl]")) {
-                            jsonObjectBuilder.add("IsTemplate", Boolean.TRUE);
-                        } else {
-                            JsonReader reader = null;
-                            switch (extension.toLowerCase()){
-                                case "json":
-                                    reader = Json.createReader(new StringReader(contents));
-                                    break;
-                                case "yaml":
-                                case "yml":
-                                    try {
-                                        ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
-                                        Object obj = yamlReader.readValue(contents, Object.class);
-                                        ObjectMapper jsonWriter = new ObjectMapper();
-                                        String json = jsonWriter.writeValueAsString(obj);
-                                        reader = Json.createReader(new StringReader(json));
-                                    } catch (JsonProcessingException e) {
-                                        //do nothing
-                                        System.err.println(String.format("Unable to convert yaml file %s to json. Error details: %s", file, e.getMessage()));
-                                    }
-                                    break;
+                    try (Stream<String> lines = Files.lines(file)) {
+                        String firstNonBlankLine = null;
+                        for (String line : (Iterable<String>) lines::iterator)
+                        {
+                            if(StringUtils.isNotBlank(line)){
+                                firstNonBlankLine = StringUtils.trim(line);
+                                break;
                             }
-                            if (reader!=null){
-                                try {
-                                    JsonStructure jsonStructure = reader.read();
-                                    reader.close();
-                                    jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
-                                } catch (JsonException e) {
-                                    //do nothing
-                                    System.err.println(String.format("Unable to parse json file %s. Error details: %s", file, e.getMessage()));
+                        }
+                        if (firstNonBlankLine != null) {
+                            if (StringUtils.startsWith(firstNonBlankLine, "[#ftl]")) {
+                                jsonObjectBuilder.add("IsTemplate", Boolean.TRUE);
+                            } else {
+                                JsonReader reader = null;
+                                switch (extension.toLowerCase()){
+                                    case "json":
+                                        reader = Json.createReader(new StringReader(contents));
+                                        break;
+                                    case "yaml":
+                                    case "yml":
+                                        try {
+                                            ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+                                            Object obj = yamlReader.readValue(contents, Object.class);
+                                            ObjectMapper jsonWriter = new ObjectMapper();
+                                            String json = jsonWriter.writeValueAsString(obj);
+                                            reader = Json.createReader(new StringReader(json));
+                                        } catch (JsonProcessingException e) {
+                                            //do nothing
+                                            System.err.println(String.format("Unable to convert yaml file %s to json. Error details: %s", file, e.getMessage()));
+                                        }
+                                        break;
+                                }
+                                if (reader!=null){
+                                    try {
+                                        JsonStructure jsonStructure = reader.read();
+                                        reader.close();
+                                        jsonObjectBuilder.add("ContentsAsJSON", cleanUpJson(jsonStructure));
+                                    } catch (JsonException e) {
+                                        //do nothing
+                                        System.err.println(String.format("Unable to parse json file %s. Error details: %s", file, e.getMessage()));
+                                    }
                                 }
                             }
                         }
