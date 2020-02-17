@@ -1118,7 +1118,7 @@ public class GetCMDBTreeMethodTest {
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
         createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
-        createFile(cmdbsPath,"almv2/path/3/test", "match", "[#ftl]");
+        createFile(cmdbsPath,"almv2/path/3/test", "match", "\n   \n   \n\t  [#ftl] \n\n");
         createFile(cmdbsPath,"accounts", ".cmdb", content);
         createFile(cmdbsPath,"api", ".cmdb", "{}");
         createFile(cmdbsPath,"almv2", ".cmdb", "{}");
