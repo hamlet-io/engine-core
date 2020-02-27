@@ -107,6 +107,7 @@ public abstract class GetLayerTreeMethod {
     }
 
     public TemplateModel process() {
+        layerProcessor.setConfiguration(Environment.getCurrentEnvironment().getConfiguration());
         Set<JsonObject> result = null;
         try {
             result = layerProcessor.getLayerTree(meta);

@@ -3,6 +3,9 @@ package io.codeontap.freemarkerwrapper.files.processors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultMapAdapter;
+import freemarker.template.TemplateModel;
 import io.codeontap.freemarkerwrapper.files.FileFinder;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
@@ -23,14 +26,28 @@ public abstract class LayerProcessor {
     protected Map<String, String> fileSystem;
     protected Map<String, Layer> layerMap = new LinkedHashMap<>();
     private Map<String, List<Path>> filesPerLayer = new LinkedHashMap<>();
+    protected Configuration configuration;
 
     public abstract void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException;
+    public abstract void postProcessMeta(LayerMeta meta);
     public abstract JsonObjectBuilder buildInformation(JsonObjectBuilder jsonObjectBuilder, Layer layer, Path file);
     public abstract JsonArrayBuilder buildLayers(LayerMeta meta);
 
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
     public JsonArray getLayers(LayerMeta meta) throws RunFreeMarkerException {
         createLayerFileSystem(meta);
+        postProcessMeta(meta);
         return buildLayers(meta).build();
+    }
+
+    public void initLayers(LayerMeta meta) throws RunFreeMarkerException {
+        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+        createLayerFileSystem(meta);
     }
 
     public Set<JsonObject> getLayerTree(LayerMeta meta) throws RunFreeMarkerException{
@@ -40,7 +57,22 @@ public abstract class LayerProcessor {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
 
+        if (configuration.getSharedVariableNames().contains("fileSystem")){
+            fileSystem = (TreeMap)((DefaultMapAdapter)configuration.getSharedVariable("fileSystem")).getWrappedObject();
+        }
+
+        if (configuration.getSharedVariableNames().contains("layerMap")){
+            layerMap = (LinkedHashMap)((DefaultMapAdapter)configuration.getSharedVariable("layerMap")).getWrappedObject();
+        }
+
+        if(fileSystem == null){
+            createLayerFileSystem(meta);
+        }
+
+/*
         createLayerFileSystem(meta);
+*/
+        postProcessMeta(meta);
 
         if(fileSystem == null){
             return output;

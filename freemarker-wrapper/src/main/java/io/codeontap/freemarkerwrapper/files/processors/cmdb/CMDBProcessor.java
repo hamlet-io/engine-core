@@ -1,5 +1,6 @@
 package io.codeontap.freemarkerwrapper.files.processors.cmdb;
 
+import freemarker.template.TemplateModelException;
 import io.codeontap.freemarkerwrapper.files.FileFinder;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.files.layers.cmdb.CMDBLayer;
@@ -163,6 +164,27 @@ public class CMDBProcessor extends LayerProcessor {
         fileSystem = processCMDBFileSystem(cmdbMeta.getBaseCMDB(), buildCMDBFileSystem(
                 cmdbMeta.getBaseCMDB(), cmdbMeta.getCMDBs(), cmdbMeta.isUseCMDBPrefix(), cmdbMeta.getLayersNames(), true));
 
+        try {
+            configuration.setSharedVariable("fileSystem", fileSystem);
+            configuration.setSharedVariable("layerMap", layerMap);
+        } catch (TemplateModelException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void postProcessMeta(LayerMeta meta) {
+        CMDBMeta cmdbMeta = (CMDBMeta)meta;
+        Set<String> cmdbNames = new LinkedHashSet<>();
+        if(!cmdbMeta.getCMDBNamesList().isEmpty()){
+            if(StringUtils.isNotEmpty(cmdbMeta.getBaseCMDB()) && !cmdbMeta.getCMDBNamesList().contains(cmdbMeta.getBaseCMDB()))
+                cmdbNames.add(cmdbMeta.getBaseCMDB());
+            for (String name:cmdbMeta.getCMDBNamesList()){
+                cmdbNames.add(name);
+            }
+
+        }
+        cmdbMeta.setLayersNames(cmdbNames);
         if(cmdbMeta.getLayersNames().isEmpty()){
             for (Layer layer:layerMap.values()){
                 CMDBLayer cmdbLayer = (CMDBLayer)layer;
