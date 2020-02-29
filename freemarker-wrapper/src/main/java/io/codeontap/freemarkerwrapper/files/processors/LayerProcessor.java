@@ -334,7 +334,7 @@ public abstract class LayerProcessor {
         if(files == null) {
             // search starting point optimisation, see https://github.com/codeontap/gen3-freemarker-wrapper/issues/22
             Path startingDir = getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath());
-            FileFinder.Finder finder = new FileFinder.Finder("*", meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
+            FileFinder.Finder finder = new FileFinder.Finder(meta.getFilenameGlob(), meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
             String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()));
             int relativeLayerPathDepth = StringUtils.split(relativeLayerPath,"/").length;
             Integer depth = Integer.MAX_VALUE;

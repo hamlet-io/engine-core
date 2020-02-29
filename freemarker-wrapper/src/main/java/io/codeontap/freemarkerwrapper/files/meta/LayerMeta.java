@@ -20,6 +20,7 @@ public abstract class LayerMeta {
     private Integer maxDepth;
 
     private boolean caseSensitive;
+    private String filenameGlob;
 
     public String getStartingPath() {
         return startingPath;
@@ -125,5 +126,13 @@ public abstract class LayerMeta {
 
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
+    }
+
+    public String getFilenameGlob() {
+        return filenameGlob;
+    }
+
+    public void setFilenameGlob(String filenameGlob) {
+        this.filenameGlob = filenameGlob;
     }
 }

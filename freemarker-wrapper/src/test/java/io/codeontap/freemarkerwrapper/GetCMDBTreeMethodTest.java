@@ -1663,7 +1663,7 @@ public class GetCMDBTreeMethodTest {
 
     private final String getFileTreeAccountsTemplate = "[#ftl]\n" +
             "\n" +
-            "[#assign regex=\"test.json\"]\n" +
+            "[#assign regex=\".json\"]\n" +
             "[#assign candidates =\n" +
             "  getFileTree(\n" +
             "    \"products\",\n" +
@@ -1674,6 +1674,7 @@ public class GetCMDBTreeMethodTest {
             "        \"MinDepth\" : 2,\n" +
             "        \"MaxDepth\" : 3,\n" +
             "\t\"IncludeCMDBInformation\" : true\t,\n" +
+            "\t\"FilenameGlob\" : \"test.*\"\t,\n" +
             "\t\"UseCMDBPrefix\" : false\n" +
             "    }\n" +
             "  ) ]\n" +
