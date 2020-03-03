@@ -1267,7 +1267,7 @@ public class GetCMDBTreeMethodTest {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("initialisePluginFilesystem", new InitPluginsMethod());
+        input.put("initialisePluginFileSystem", new InitPluginsMethod());
         String fileName = templatesPath.concat("/file.ftl");
         Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, false, false, false)).getBytes());
         String content = getCMDBsAccountsTemplate;

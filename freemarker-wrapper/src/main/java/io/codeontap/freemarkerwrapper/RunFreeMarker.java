@@ -253,7 +253,7 @@ public class RunFreeMarker {
         input.put("getPlugins", new GetPluginsMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("initialisePluginFilesystem", new InitPluginsMethod());
+        input.put("initialisePluginFileSystem", new InitPluginsMethod());
 
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
