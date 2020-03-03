@@ -4,6 +4,8 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.core.Environment;
 import freemarker.template.*;
 import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
+import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
+import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
@@ -147,6 +149,7 @@ public class GetCMDBTreeMethodTest {
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
+        cfg.clearSharedVariables();
         input.put("pluginLayers", Arrays.asList(new String[]{
                 pluginsPath.concat("/test/azure"),
                 pluginsPath.concat("/test/aws"),
@@ -234,6 +237,7 @@ public class GetCMDBTreeMethodTest {
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
+        cfg.clearSharedVariables();
         input.put("pluginLayers", Arrays.asList(new String[]{
                 pluginsPath.concat("/test/azure"),
                 pluginsPath.concat("/test/aws"),
@@ -334,6 +338,7 @@ public class GetCMDBTreeMethodTest {
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
+        cfg.clearSharedVariables();
         input.put("pluginLayers", Arrays.asList(new String[]{
                 pluginsPath.concat("/test/aws"),
                 pluginsPath.concat("/test/test")
@@ -357,6 +362,8 @@ public class GetCMDBTreeMethodTest {
         Assert.assertEquals(1, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
+
+        cfg.clearSharedVariables();
         input.put("pluginLayers", Arrays.asList(new String[]{
                 pluginsPath.concat("/test/test"),
                 pluginsPath.concat("/test/azure"),
@@ -711,6 +718,7 @@ public class GetCMDBTreeMethodTest {
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
+        cfg.clearSharedVariables();
         input.put("pluginLayers", Arrays.asList(new String[]{
                 pluginsPath.concat("/test"),
                 pluginsPath.concat("/aws/"),
@@ -1258,8 +1266,10 @@ public class GetCMDBTreeMethodTest {
     public void testLookupDirOptions1() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("initialisePluginFileSystem", new InitPluginsMethod());
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, false)).getBytes());
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, false, false, false)).getBytes());
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
         createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
@@ -1302,14 +1312,16 @@ public class GetCMDBTreeMethodTest {
         Assert.assertEquals(1, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
+        freeMarkerTemplate.process(input, consoleWriter);
     }
 
     @Test
     public void testLookupDirOptions2() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, true)).getBytes());
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, true, false, true)).getBytes());
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
         createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
@@ -1358,8 +1370,9 @@ public class GetCMDBTreeMethodTest {
     public void testLookupDirOptions3() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, true, false)).getBytes());
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, true, false, true, false)).getBytes());
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
         createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
@@ -1650,7 +1663,7 @@ public class GetCMDBTreeMethodTest {
 
     private final String getFileTreeAccountsTemplate = "[#ftl]\n" +
             "\n" +
-            "[#assign regex=\"test.json\"]\n" +
+            "[#assign regex=\".json\"]\n" +
             "[#assign candidates =\n" +
             "  getFileTree(\n" +
             "    \"products\",\n" +
@@ -1661,6 +1674,7 @@ public class GetCMDBTreeMethodTest {
             "        \"MinDepth\" : 2,\n" +
             "        \"MaxDepth\" : 3,\n" +
             "\t\"IncludeCMDBInformation\" : true\t,\n" +
+            "\t\"FilenameGlob\" : \"test.*\"\t,\n" +
             "\t\"UseCMDBPrefix\" : false\n" +
             "    }\n" +
             "  ) ]\n" +
@@ -1716,6 +1730,17 @@ public class GetCMDBTreeMethodTest {
     private final String getFileTreeAccountsTemplateMatchOptions = "[#ftl]\n" +
             "\n" +
             "[#assign regex=\"match$\"]\n" +
+            "[#assign init =\n" +
+            "  initialiseCMDBFileSystem(\n" +
+            "    {\n" +
+            "        \"IgnoreDotDirectories\" : false,\n" +
+            "        \"IgnoreDotFiles\" : false,\n" +
+            "        \"StopAfterFirstMatch\" : %s,\n" +
+            "        \"IgnoreSubtreeAfterMatch\" : %s,\n" +
+            "\t\"IncludeCMDBInformation\" : true\t,\n" +
+            "\t\"UseCMDBPrefix\" : false\n" +
+            "    }\n" +
+            "  ) ]\n" +
             "[#assign candidates =\n" +
             "  getFileTree(\n" +
             "    \"/\",\n" +

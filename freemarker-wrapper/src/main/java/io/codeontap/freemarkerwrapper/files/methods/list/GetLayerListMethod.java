@@ -14,6 +14,7 @@ public abstract class GetLayerListMethod {
     protected LayerProcessor layerProcessor;
 
     public TemplateModel process() {
+        layerProcessor.setConfiguration(Environment.getCurrentEnvironment().getConfiguration());
         JsonArray result = null;
         try {
             result = layerProcessor.getLayers(meta);

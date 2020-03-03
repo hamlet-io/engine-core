@@ -1,6 +1,7 @@
 package io.codeontap.freemarkerwrapper.files.processors.plugin;
 
 
+import freemarker.template.TemplateModelException;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.files.meta.plugin.PluginMeta;
 import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
@@ -18,7 +19,7 @@ public class PluginProcessor extends LayerProcessor {
     @Override
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
         PluginMeta pluginMeta = (PluginMeta) meta;
-        fileSystem = new HashMap<>();
+        fileSystem = new TreeMap<>();
 
         for (String layer : pluginMeta.getLayers()) {
             if(!Files.isDirectory(Paths.get(layer))) {
@@ -31,12 +32,19 @@ public class PluginProcessor extends LayerProcessor {
             }
         }
 
-        if (layerMap.isEmpty()) {
-            fileSystem = null;
-        } else {
+        try {
+            configuration.setSharedVariable("fileSystem", fileSystem);
+            configuration.setSharedVariable("layerMap", layerMap);
+        } catch (TemplateModelException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void postProcessMeta(LayerMeta meta) {
+        if (!layerMap.isEmpty()) {
             meta.setLayersNames(layerMap.keySet());
         }
-
     }
 
     @Override

@@ -4,6 +4,8 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.template.*;
 import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
+import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
+import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
@@ -250,6 +252,8 @@ public class RunFreeMarker {
         input.put("getCMDBs", new GetCMDBsMethod());
         input.put("getPlugins", new GetPluginsMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("initialisePluginFileSystem", new InitPluginsMethod());
 
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
