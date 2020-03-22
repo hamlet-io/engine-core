@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultMapAdapter;
-import freemarker.template.TemplateModel;
 import io.codeontap.freemarkerwrapper.files.FileFinder;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
@@ -48,6 +47,46 @@ public abstract class LayerProcessor {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
         createLayerFileSystem(meta);
+    }
+
+    public int mkdirLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+        if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+        createLayerFileSystem(meta);
+        postProcessMeta(meta);
+        Path pathToCreate = Paths.get(meta.getStartingPath());
+        Path pathToScan = Paths.get(meta.getStartingPath());
+        while (pathToScan!=null) {
+            for (String layerName : meta.getLayersNames()) {
+                Layer layer = layerMap.get(layerName);
+                Path result = getDirectoryOnFileSystem(pathToScan.toString(), layer.getPath(), layer.getFileSystemPath());
+                if (result!=null){
+                    if (pathToCreate.equals(pathToScan))
+                        return 0;
+                    String layerPath = StringUtils.substringAfter(layer.getPath(), pathToScan.toString());
+                    String commonPath = StringUtils.substringBeforeLast(layer.getPath(), layerPath);
+                    String newPath = StringUtils.substringAfter(pathToCreate.toString(), commonPath);
+                    Path fsNewPath = Paths.get(getStartingDir(StringUtils.substringBeforeLast(result.toString(), layerPath)).concat(newPath));
+                    File newDirectory = new File(fsNewPath.toString());
+                    if (meta.isParents()){
+                        if(newDirectory.mkdirs()) {
+                            return 0;
+                        } else {
+                            return 1;
+                        }
+                    } else {
+                        if(newDirectory.mkdir()) {
+                            return 0;
+                        } else {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            pathToScan = pathToScan.getParent();
+        }
+        return 1;
     }
 
     public Set<JsonObject> getLayerTree(LayerMeta meta) throws RunFreeMarkerException{

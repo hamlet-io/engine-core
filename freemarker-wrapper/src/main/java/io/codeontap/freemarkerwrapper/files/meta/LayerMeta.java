@@ -22,6 +22,13 @@ public abstract class LayerMeta {
     private boolean caseSensitive;
     private String filenameGlob;
 
+    private boolean parents;
+    private boolean sync;
+    private boolean recurse;
+    private boolean preserve;
+    private boolean force;
+    private boolean append;
+
     public String getStartingPath() {
         return startingPath;
     }
@@ -134,5 +141,54 @@ public abstract class LayerMeta {
 
     public void setFilenameGlob(String filenameGlob) {
         this.filenameGlob = filenameGlob;
+    }
+
+
+    public boolean isParents() {
+        return parents;
+    }
+
+    public void setParents(boolean parents) {
+        this.parents = parents;
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
+    }
+
+    public boolean isRecurse() {
+        return recurse;
+    }
+
+    public void setRecurse(boolean recurse) {
+        this.recurse = recurse;
+    }
+
+    public boolean isPreserve() {
+        return preserve;
+    }
+
+    public void setPreserve(boolean preserve) {
+        this.preserve = preserve;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    public boolean isAppend() {
+        return append;
+    }
+
+    public void setAppend(boolean append) {
+        this.append = append;
     }
 }

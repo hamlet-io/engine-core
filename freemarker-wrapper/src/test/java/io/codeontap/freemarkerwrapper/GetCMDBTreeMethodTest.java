@@ -6,6 +6,7 @@ import freemarker.template.*;
 import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
 import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
+import io.codeontap.freemarkerwrapper.files.methods.mkdir.cmdb.MkdirCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
@@ -1000,6 +1001,58 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
+    public void testMkDir() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("mkdirCMDB", new MkdirCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(mkDirTemplate, "/non-exist/products/new-product/another-dir", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/non-exist/products/new-product/another-dir"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+
+        Files.write(Paths.get(fileName2), (String.format(mkDirTemplate, "/non-exist/products/new-product/another-dir", "true", "false")).getBytes());
+        freeMarkerTemplate = cfg.getTemplate(fileName2);
+        freeMarkerTemplate.process(input, consoleWriter);
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+
+        input.put("CMDBNames", Arrays.asList(new String[]{ "api", "almv2", "accounts", }));
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInApiCMDB = new File(cmdbsPath.concat("/api").concat("/non-exist/products/new-product/another-dir"));
+        Assert.assertFalse(fileInApiCMDB.exists());
+        FileUtils.deleteDirectory(new File(cmdbsPath.concat("/accounts").concat("/non-exist")));
+        freeMarkerTemplate.process(input, consoleWriter);
+        Assert.assertTrue(fileInApiCMDB.exists());
+
+        Files.write(Paths.get(fileName3), (String.format(mkDirTemplate, "/products/almv2/new-product/another-dir", "true", "false")).getBytes());
+        File dirInAlmv2CMDB = new File(cmdbsPath.concat("/almv2").concat("/new-product/another-dir"));
+        freeMarkerTemplate = cfg.getTemplate(fileName3);
+        freeMarkerTemplate.process(input, consoleWriter);
+        Assert.assertTrue(dirInAlmv2CMDB.exists());
+    }
+
+    @Test
     public void testLookupDir() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
@@ -1660,6 +1713,37 @@ public class GetCMDBTreeMethodTest {
             "    }\n" +
             "  ]\n" +
             "}";
+
+    private final String getCMDBsAccountsTemplateMkdir = "{\n" +
+            "  \"Version\": {\n" +
+            "    \"Upgrade\": \"v1.3.2\",\n" +
+            "    \"Cleanup\": \"v1.1.0\"\n" +
+            "  },\n" +
+            "  \"Layers\" : [\n" +
+            "    {\n" +
+            "      \"Name\" : \"api\",\n" +
+            "      \"BasePath\" : \"products/api/config\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"Name\" : \"almv2\",\n" +
+            "      \"BasePath\" : \"/products/almv2\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+    private final String mkDirTemplate = "[#ftl]\n" +
+            "\n" +
+            "[#assign init =\n" +
+            "  initialiseCMDBFileSystem({}) ]\n" +
+            "[#assign candidates =\n" +
+            "  mkdirCMDB(\n" +
+            "    \"%s\",\n" +
+            "    {\n" +
+            "        \"Parents\" : %s,\n" +
+            "        \"Sync\" : %s\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "\n";
 
     private final String getFileTreeAccountsTemplate = "[#ftl]\n" +
             "\n" +

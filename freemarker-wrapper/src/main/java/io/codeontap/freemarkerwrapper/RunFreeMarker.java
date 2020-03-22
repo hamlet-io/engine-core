@@ -6,6 +6,7 @@ import freemarker.template.*;
 import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
 import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
+import io.codeontap.freemarkerwrapper.files.methods.mkdir.cmdb.MkdirCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
@@ -30,13 +31,12 @@ public class RunFreeMarker {
     private static Map<String, Object> input = null;
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
-    private static String separator = " ";
 
     final static Options options = new Options();
 
     private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
 
-    public static void main (String args[]) throws RunFreeMarkerException, IOException, TemplateException, ParseException {
+    public static void main (String args[]) throws IOException, TemplateException, ParseException {
 
         Attributes mainAttribs = null;
         String version = "";
@@ -97,8 +97,6 @@ public class RunFreeMarker {
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse( options, args);
-        FileTemplateLoader[] templateLoaders = null;
-
 
         if(cmd.hasOption(versionOption.getOpt())){
             System.out.println(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
@@ -119,14 +117,6 @@ public class RunFreeMarker {
 
         while (optionIterator.hasNext()){
             Option option = optionIterator.next();
-/*
-            System.out.println(option.getOpt());
-            for(String value: option.getValues()){
-                System.out.print(value+ " ");
-            }
-            System.out.println("");
-*/
-
             String opt = option.getOpt();
             String[] values = option.getValues();
             if(opt.equals(inputOption.getOpt())){
@@ -185,14 +175,9 @@ public class RunFreeMarker {
         input.put("pluginLayers", directories);
 
         loaderList.add(new FileTemplateLoader(new File("/")));
-        /*templateLoaders = new FileTemplateLoader[loaderSet.size()];*/
 
         System.out.println("Templates directories in the order as they will be searched:");
-        int templateLoaderIndex = 0;
         for(FileTemplateLoader fileTemplateLoader : loaderList){
-/*
-            templateLoaders[templateLoaderIndex] = fileTemplateLoader;
-*/
             System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
         }
         cfg.setTemplateLoader(new MultiTemplateLoader(loaderList.toArray(new FileTemplateLoader[]{})));
@@ -250,6 +235,7 @@ public class RunFreeMarker {
         input.put("IPAddress__getSubNetworks", new IPAddressGetSubNetworksMethod());
         input.put("getCMDBTree", new GetCMDBTreeMethod());
         input.put("getCMDBs", new GetCMDBsMethod());
+        input.put("mkdirCMDB", new MkdirCMDBMethod());
         input.put("getPlugins", new GetPluginsMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
