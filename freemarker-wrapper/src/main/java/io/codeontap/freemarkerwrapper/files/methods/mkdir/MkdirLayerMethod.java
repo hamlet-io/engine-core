@@ -29,9 +29,6 @@ public abstract class MkdirLayerMethod {
         } catch (RunFreeMarkerException e) {
             e.printStackTrace();
             result = 1;
-        } catch (IOException e) {
-            e.printStackTrace();
-            result = 2;
         }
         return new SimpleNumber(result);
     }

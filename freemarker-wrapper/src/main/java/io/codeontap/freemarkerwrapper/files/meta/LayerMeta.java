@@ -3,9 +3,11 @@ package io.codeontap.freemarkerwrapper.files.meta;
 import java.util.List;
 import java.util.Set;
 
-public abstract class LayerMeta {
+public abstract class LayerMeta implements Cloneable{
     private Set<String> layersNames;
     private String startingPath;
+    private String fromPath;
+    private String toPath;
     private List<String> regexList;
 
     private boolean ignoreDotDirectories;
@@ -28,6 +30,16 @@ public abstract class LayerMeta {
     private boolean preserve;
     private boolean force;
     private boolean append;
+
+    private String format;
+
+    private Object content;
+
+    public Object clone() throws
+            CloneNotSupportedException
+    {
+        return super.clone();
+    }
 
     public String getStartingPath() {
         return startingPath;
@@ -190,5 +202,37 @@ public abstract class LayerMeta {
 
     public void setAppend(boolean append) {
         this.append = append;
+    }
+
+    public String getFromPath() {
+        return fromPath;
+    }
+
+    public void setFromPath(String fromPath) {
+        this.fromPath = fromPath;
+    }
+
+    public String getToPath() {
+        return toPath;
+    }
+
+    public void setToPath(String toPath) {
+        this.toPath = toPath;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public Object getContent() {
+        return content;
+    }
+
+    public void setContent(Object content) {
+        this.content = content;
     }
 }

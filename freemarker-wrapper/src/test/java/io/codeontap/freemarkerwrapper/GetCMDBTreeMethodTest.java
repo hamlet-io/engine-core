@@ -4,9 +4,11 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.core.Environment;
 import freemarker.template.*;
 import io.codeontap.freemarkerwrapper.files.adapters.JsonValueWrapper;
+import io.codeontap.freemarkerwrapper.files.methods.cp.cmdb.CpCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.mkdir.cmdb.MkdirCMDBMethod;
+import io.codeontap.freemarkerwrapper.files.methods.to.cmdb.ToCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
@@ -1053,6 +1055,438 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
+    public void testCopy() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/dir/test.json", "/products/test.json", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "temp.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "api", "accounts", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/api").concat("/test.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+    }
+
+    @Test
+    public void testCopy1() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/dir/test-*.json", "/products/almv2-copy/test.json", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test.json"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+    }
+
+    @Test
+    public void testCopy2() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/dir/test.json", "/products/almv2-copy/test.json", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testCopy3() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/dir/test-*.json", "/products/almv2-copy/", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test-1.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test-2.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testCopy4() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/dir/test-*.json", "/products/almv2-copy/temp.json", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test-1.json"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+        Assert.assertFalse(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/test-2.json"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+        Assert.assertFalse(fileInAccountsCMDB.isFile());
+    }
+
+
+    @Test
+    public void testCopy5() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/", "/products/almv2-copy", "false", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/dir/test-1.json"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+        Assert.assertFalse(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/dir/test-2.json"));
+        Assert.assertFalse(fileInAccountsCMDB.exists());
+        Assert.assertFalse(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/.cmdb"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testCopy6() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("cpCMDB", new CpCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(cpTemplate, "/products/almv2/", "/products/almv2-copy/temp2.json", "true", "false", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp2.json/dir/test-1.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp2.json/dir/test-2.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+        fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp2.json/.cmdb"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testToCMDB() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("toCMDB", new ToCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(toTemplate, "/products/almv2-copy/temp.yml", "content", "false", "yml", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp.yml"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testToCMDB2() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("toCMDB", new ToCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(toTemplate, "/products/almv2-copy/temp.json", "content", "true", "json", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testToCMDB3() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("toCMDB", new ToCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(toTemplate, "/products/almv2-copy/temp.json", "list", "true", "json", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp.json"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
+    public void testToCMDB4() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("toCMDB", new ToCMDBMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        String fileName3 = templatesPath.concat("/file3.ftl");
+        Files.write(Paths.get(fileName), (String.format(toTemplate, "/products/almv2-copy/temp.txt", "line", "true", "text", "false")).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        createFile(cmdbsPath,"accounts/products", "test.json", "{}");
+        createFile(cmdbsPath,"accounts/products/almv2-copy", "temp.txt", "line1\n");
+        createFile(cmdbsPath,"api", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-1.json", "{}");
+        createFile(cmdbsPath,"almv2/dir", "test-2.json", "{}");
+        createFile(cmdbsPath,"api/another-dir", "test.json", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "api", "almv2",  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        File fileInAccountsCMDB = new File(cmdbsPath.concat("/accounts").concat("/products/almv2-copy/temp.txt"));
+        Assert.assertTrue(fileInAccountsCMDB.exists());
+        Assert.assertTrue(fileInAccountsCMDB.isFile());
+    }
+
+    @Test
     public void testLookupDir() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("getFileTree", new GetCMDBTreeMethod());
@@ -1740,6 +2174,37 @@ public class GetCMDBTreeMethodTest {
             "    \"%s\",\n" +
             "    {\n" +
             "        \"Parents\" : %s,\n" +
+            "        \"Sync\" : %s\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "\n";
+
+    private final String cpTemplate = "[#ftl]\n" +
+            "\n" +
+            "[#assign candidates =\n" +
+            "  cpCMDB(\n" +
+            "    \"%s\",\n" +
+            "    \"%s\",\n" +
+            "    {\n" +
+            "        \"Recurse\" : %s,\n" +
+            "        \"Preserve\" : %s,\n" +
+            "        \"Sync\" : %s\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "\n";
+
+    private final String toTemplate = "[#ftl]\n" +
+            "\n" +
+            "[#assign content = { \"var\": \"value\"} ]\n" +
+            "[#assign line = \"line2\n\" ]\n" +
+            "[#assign list = [ \"var\", \"value\"] ]\n" +
+            "[#assign candidates =\n" +
+            "  toCMDB(\n" +
+            "    \"%s\",\n" +
+            "    %s,\n" +
+            "    {\n" +
+            "        \"Append\" : %s,\n" +
+            "        \"Format\" : \"%s\",\n" +
             "        \"Sync\" : %s\n" +
             "    }\n" +
             "  ) ]\n" +

@@ -1,5 +1,6 @@
 package io.codeontap.freemarkerwrapper.files.processors;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -49,7 +51,7 @@ public abstract class LayerProcessor {
         createLayerFileSystem(meta);
     }
 
-    public int mkdirLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+    public int mkdirLayers(LayerMeta meta) throws RunFreeMarkerException {
         if(meta.getStartingPath()!=null && !meta.getStartingPath().startsWith("/")){
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
@@ -65,6 +67,13 @@ public abstract class LayerProcessor {
                     if (pathToCreate.equals(pathToScan))
                         return 0;
                     String layerPath = StringUtils.substringAfter(layer.getPath(), pathToScan.toString());
+                    // TODO: refactor this ugly layerPath calculation
+                    if(layer.getPath().equalsIgnoreCase(pathToScan.toString())){
+                        layerPath = "";
+                    }
+                    else if("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString())){
+                        layerPath=pathToScan.toString();
+                    }
                     String commonPath = StringUtils.substringBeforeLast(layer.getPath(), layerPath);
                     String newPath = StringUtils.substringAfter(pathToCreate.toString(), commonPath);
                     Path fsNewPath = Paths.get(getStartingDir(StringUtils.substringBeforeLast(result.toString(), layerPath)).concat(newPath));
@@ -87,6 +96,107 @@ public abstract class LayerProcessor {
             pathToScan = pathToScan.getParent();
         }
         return 1;
+    }
+
+    public int toLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+        if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+        createLayerFileSystem(meta);
+        postProcessMeta(meta);
+
+
+        Object content = meta.getContent();
+
+        final StringWriter writer = new StringWriter();
+        if ("json".equalsIgnoreCase(meta.getFormat())) {
+            ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
+            objectMapper.writeValue(writer,content);
+        } else if ("yml".equalsIgnoreCase(meta.getFormat()) || "yaml".equalsIgnoreCase(meta.getFormat())) {
+            ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+            objectMapper.writeValue(writer,content);
+        } else {
+            writer.write(content.toString());
+        }
+
+        Path destinationFile = getDestinationPath(meta, "singleFile");
+        if(meta.isAppend()){
+            Files.write(destinationFile, writer.toString().getBytes(),StandardOpenOption.APPEND);
+        } else {
+            Files.write(destinationFile, writer.toString().getBytes());
+        }
+        return 0;
+    }
+
+    public int cpLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+        if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
+            meta.setStartingPath("/".concat(meta.getStartingPath()));
+        }
+        createLayerFileSystem(meta);
+        postProcessMeta(meta);
+
+        CopyOption copyAttributes = null;
+        if(meta.isPreserve()){
+            copyAttributes = StandardCopyOption.COPY_ATTRIBUTES;
+        }
+
+
+        Path sourceDirectory = getExistingDirectory(meta.getLayersNames(), meta.getFromPath());
+        if (sourceDirectory != null){
+            Path destinationDirectory = getDestinationPath(meta, "directory");
+            if (destinationDirectory!=null) {
+                int maxDepth = 1;
+                if(meta.isRecurse())
+                    maxDepth = Integer.MAX_VALUE;
+                for(Object sourceObject : Files.walk(sourceDirectory, maxDepth).toArray()){
+                    Path source = (Path)sourceObject;
+                    Path destinationFile = destinationDirectory.resolve(sourceDirectory.relativize(source));
+                    if(!destinationFile.equals(destinationDirectory)) {
+                        if (meta.isPreserve()) {
+                            copy(source, destinationFile, StandardCopyOption.COPY_ATTRIBUTES);
+                        } else {
+                            copy(source, destinationFile, null);
+                        }
+                    }
+                }
+            }
+        } else {
+            String sourceStartingPath = StringUtils.substringBeforeLast(meta.getFromPath(), "/");
+            String sourceFilenameGlob = StringUtils.substringAfterLast(meta.getFromPath(), "/");
+            meta.setStartingPath(sourceStartingPath);
+            meta.setFilenameGlob(sourceFilenameGlob);
+            List<Path> files = getFilesPerLayerMeta(meta);
+            if(files!=null){
+                if (files.size() == 1){
+                    Path destinationPath = getDestinationPath(meta, "singleFile");
+                    if(destinationPath!=null) {
+                        if (Files.isDirectory(destinationPath)) {
+                            destinationPath = Paths.get(destinationPath.toString().concat("/").concat(files.get(0).getFileName().toString()));
+                        }
+                        copy(files.get(0), destinationPath, copyAttributes);
+                        return 0;
+                    }
+                } else {
+                    Path destinationDirectory = getDestinationPath(meta, "fileNameGlob");
+                    if(destinationDirectory!=null){
+                        for(Path file : files){
+                            Path destinationFile = Paths.get(destinationDirectory.toString().concat("/").concat(file.getFileName().toString()));
+                            copy(file, destinationFile, copyAttributes);
+                        }
+                        return 0;
+                    }
+                }
+            }
+        }
+        return 1;
+    }
+
+    private void copy(Path source, Path destination, CopyOption copyOption) throws IOException {
+        if (copyOption != null) {
+            Files.copy(source, destination, copyOption);
+        } else {
+            Files.copy(source, destination);
+        }
     }
 
     public Set<JsonObject> getLayerTree(LayerMeta meta) throws RunFreeMarkerException{
@@ -168,7 +278,7 @@ public abstract class LayerProcessor {
                 // get physical starting dir for the current layer
                 for (Path file : getFilesPerLayer(meta, layer)) {
                     String path = file.toString();
-                    String layerPath = forceUnixStyle(StringUtils.replaceOnce(path, Paths.get(layer.getFileSystemPath()).toString(), layer.getPath()));
+                    String layerPath = getPathOnLayerFileSystem(path, layer);
                     Matcher m = p.matcher(layerPath);
                     if(m.matches()){
                         if(meta.isCaseSensitive()){
@@ -373,6 +483,8 @@ public abstract class LayerProcessor {
         if(files == null) {
             // search starting point optimisation, see https://github.com/codeontap/gen3-freemarker-wrapper/issues/22
             Path startingDir = getDirectoryOnFileSystem(meta.getStartingPath(), layer.getPath(), layer.getFileSystemPath());
+            if(startingDir == null)
+                return files;
             FileFinder.Finder finder = new FileFinder.Finder(meta.getFilenameGlob(), meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
             String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()));
             int relativeLayerPathDepth = StringUtils.split(relativeLayerPath,"/").length;
@@ -456,5 +568,69 @@ public abstract class LayerProcessor {
         } else {
             return null;
         }
+    }
+
+    private String getPathOnLayerFileSystem (String pathOnFileSystem, Layer layer) {
+        return forceUnixStyle(StringUtils.replaceOnce(pathOnFileSystem, Paths.get(layer.getFileSystemPath()).toString(), layer.getPath()));
+    }
+
+    private Path getExistingDirectory(Set<String> layerNames, String directoryPath){
+        for (String layerName : layerNames) {
+            Layer layer = layerMap.get(layerName);
+            Path destinationDirectory = getDirectoryOnFileSystem(directoryPath, layer.getPath(), layer.getFileSystemPath());
+            if (destinationDirectory!=null && Files.exists(destinationDirectory) && Files.isDirectory(destinationDirectory)){
+                return destinationDirectory;
+            }
+        }
+        return null;
+    }
+
+    private List<Path> getFilesPerLayerMeta(LayerMeta meta){
+        for (String layerName : meta.getLayersNames()) {
+            Layer layer = layerMap.get(layerName);
+            List<Path> files = getFilesPerLayer(meta, layer);
+            if(files!=null)
+                return files;
+        }
+        return null;
+    }
+
+    private Path getDestinationPath(LayerMeta sourceMeta, String sourceType) throws RunFreeMarkerException {
+        if("directory".equalsIgnoreCase(sourceType)){
+            //destination can be an existing or a new directory
+            //check if destination directory exists
+            Path destinationDirectory = null;
+            destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
+            //if destination directory doesn't exist, create it
+            if(destinationDirectory == null) {
+                try {
+                    LayerMeta destinationMeta = (LayerMeta) sourceMeta.clone();
+                    destinationMeta.setStartingPath(sourceMeta.getToPath());
+                    destinationMeta.setParents(Boolean.FALSE);
+                    mkdirLayers(destinationMeta);
+                    destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return destinationDirectory;
+        } if("singleFile".equalsIgnoreCase(sourceType)){
+            // destination can be an existing directory or a file in an existing directory
+            Path destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
+            if(destinationDirectory != null) {
+                return destinationDirectory;
+            } else {
+                String parentDestination = StringUtils.substringBeforeLast(sourceMeta.getToPath(), "/");
+                String destinationFileName = StringUtils.substringAfterLast(sourceMeta.getToPath(), "/");
+                destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), parentDestination);
+                if (destinationDirectory!=null){
+                    return Paths.get(destinationDirectory.toString().concat("/").concat(destinationFileName));
+                } else return null;
+            }
+        } if("fileNameGlob".equalsIgnoreCase(sourceType)){
+            // destination must be an existing directory
+            return getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
+        }
+        return null;
     }
 }
