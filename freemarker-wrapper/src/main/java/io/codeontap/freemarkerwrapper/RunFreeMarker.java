@@ -8,6 +8,7 @@ import io.codeontap.freemarkerwrapper.files.methods.cp.cmdb.CpCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
 import io.codeontap.freemarkerwrapper.files.methods.mkdir.cmdb.MkdirCMDBMethod;
+import io.codeontap.freemarkerwrapper.files.methods.rm.cmdb.RmCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.to.cmdb.ToCMDBMethod;
 import io.codeontap.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.codeontap.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
@@ -240,6 +241,7 @@ public class RunFreeMarker {
         input.put("mkdirCMDB", new MkdirCMDBMethod());
         input.put("cpCMDB", new CpCMDBMethod());
         input.put("toCMDB", new ToCMDBMethod());
+        input.put("rmCMDB", new RmCMDBMethod());
         input.put("getPlugins", new GetPluginsMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
