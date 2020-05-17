@@ -202,6 +202,77 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
+    public void getPluginTreeAfterCMDBInit() throws IOException, TemplateException{
+
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
+        input.put("initialisePluginFileSystem", new InitPluginsMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getFileTreeAccountsTemplateMatchOptions, false, false, false, false)).getBytes());
+        String content = getCMDBsAccountsTemplate;
+        createFile(cmdbsPath,"accounts/path/1/test", "test.json", content);
+        createFile(cmdbsPath,"api/path/2/match", "test.json", "{}");
+        createFile(cmdbsPath,"almv2/path/3/test", "match", "[#ftl]");
+        createFile(cmdbsPath,"almv2/path/3/test/subdir", "match", "[#ftl]");
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
+        input.put("CMDBNames", Arrays.asList(new String[]{ "accounts", "almv2", "api"  }));
+        input.put("baseCMDB", "accounts");
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+
+
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName2 = templatesPath.concat("/file2.ftl");
+        Files.write(Paths.get(fileName2), (String.format(getEngineTemplate, "test.json")).getBytes());
+
+        createFile(pluginsPath,"test/aws", "test.JSON", "{}");
+        createFile(pluginsPath,"test/azure", "test.json", "{}");
+        createFile(pluginsPath,"test/test", "test-1.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test/aws"),
+                pluginsPath.concat("/test/azure"),
+                pluginsPath.concat("/test/test")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate2 = cfg.getTemplate(fileName2);
+        ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream();
+        Writer consoleWriter2 = new OutputStreamWriter(byteArrayOutputStream2);
+        freeMarkerTemplate2.process(input, consoleWriter2);
+        String output = new String(byteArrayOutputStream2.toByteArray());
+        Pattern p = Pattern.compile("Name : aws");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("ContentsAsJSON : #hash#");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+
+    }
+
+
+    @Test
     public void getPluginTreeYaml() throws IOException, TemplateException{
         input = new HashMap<String, Object>();
         input.put("getPluginTree", new GetPluginTreeMethod());

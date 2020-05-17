@@ -32,12 +32,9 @@ public class PluginProcessor extends LayerProcessor {
             }
         }
 
-        try {
-            configuration.setSharedVariable("fileSystem", fileSystem);
-            configuration.setSharedVariable("layerMap", layerMap);
-        } catch (TemplateModelException e) {
-            e.printStackTrace();
-        }
+        fileSystemShareVariableName = "pluginFileSystem";
+        layerMapShareVariableName = "pluginLayerMap";
+        setSharedVariables();
     }
 
     @Override
