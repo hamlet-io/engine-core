@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultMapAdapter;
+import freemarker.template.TemplateModelException;
 import io.codeontap.freemarkerwrapper.files.FileFinder;
 import io.codeontap.freemarkerwrapper.files.layers.Layer;
 import io.codeontap.freemarkerwrapper.RunFreeMarkerException;
@@ -16,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import java.io.*;
-import java.math.BigDecimal;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -29,6 +29,8 @@ public abstract class LayerProcessor {
     protected Map<String, Layer> layerMap = new LinkedHashMap<>();
     private Map<String, List<Path>> filesPerLayer = new LinkedHashMap<>();
     protected Configuration configuration;
+    protected String fileSystemShareVariableName;
+    protected String layerMapShareVariableName;
 
     public abstract void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException;
 
@@ -40,6 +42,15 @@ public abstract class LayerProcessor {
 
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    protected void setSharedVariables(){
+        try {
+            configuration.setSharedVariable(fileSystemShareVariableName, fileSystem);
+            configuration.setSharedVariable(layerMapShareVariableName, layerMap);
+        } catch (TemplateModelException e) {
+            e.printStackTrace();
+        }
     }
 
     public JsonArray getLayers(LayerMeta meta) throws RunFreeMarkerException {
@@ -247,12 +258,12 @@ public abstract class LayerProcessor {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
 
-        if (configuration.getSharedVariableNames().contains("fileSystem")) {
-            fileSystem = (TreeMap) ((DefaultMapAdapter) configuration.getSharedVariable("fileSystem")).getWrappedObject();
+        if (configuration.getSharedVariableNames().contains(fileSystemShareVariableName)){
+            fileSystem = (TreeMap)((DefaultMapAdapter)configuration.getSharedVariable(fileSystemShareVariableName)).getWrappedObject();
         }
 
-        if (configuration.getSharedVariableNames().contains("layerMap")) {
-            layerMap = (LinkedHashMap) ((DefaultMapAdapter) configuration.getSharedVariable("layerMap")).getWrappedObject();
+        if (configuration.getSharedVariableNames().contains(layerMapShareVariableName)){
+            layerMap = (LinkedHashMap)((DefaultMapAdapter)configuration.getSharedVariable(layerMapShareVariableName)).getWrappedObject();
         }
 
         if (fileSystem == null) {
