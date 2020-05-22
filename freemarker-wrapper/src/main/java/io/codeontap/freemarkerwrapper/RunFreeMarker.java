@@ -18,6 +18,9 @@ import io.codeontap.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.*;
@@ -38,8 +41,18 @@ public class RunFreeMarker {
     final static Options options = new Options();
 
     private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
+    private static String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
+    private static org.apache.log4j.Logger log = Logger.getLogger(RunFreeMarker.class);
     public static void main (String args[]) throws IOException, TemplateException, ParseException {
+
+        String generationLogLevel = System.getenv(GENERATION_LOG_LEVEL_VAR_NAME);
+        BasicConfigurator.configure();
+        if (generationLogLevel != null) {
+            log.setLevel(Level.toLevel(generationLogLevel));
+        } else {
+            log.setLevel(Level.INFO);
+        }
 
         Attributes mainAttribs = null;
         String version = "";
@@ -47,7 +60,7 @@ public class RunFreeMarker {
             mainAttribs = readProperties();
             version = mainAttribs.getValue("Implementation-Version");
         } catch (Exception e) {
-            System.out.println("Unable to parse manifest file.");
+            log.error("Unable to parse manifest file.");
             e.printStackTrace();
         }
 
@@ -102,7 +115,7 @@ public class RunFreeMarker {
         CommandLine cmd = parser.parse( options, args);
 
         if(cmd.hasOption(versionOption.getOpt())){
-            System.out.println(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
+            log.info(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
             formatter.printHelp(String.format("java -jar freemarker-wrapper-%s.jar", version), options);
             return;
         }
@@ -179,15 +192,15 @@ public class RunFreeMarker {
 
         loaderList.add(new FileTemplateLoader(new File("/")));
 
-        System.out.println("Templates directories in the order as they will be searched:");
+        log.debug("Templates directories in the order as they will be searched:");
         for(FileTemplateLoader fileTemplateLoader : loaderList){
-            System.out.println(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
+            log.debug(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
         }
         cfg.setTemplateLoader(new MultiTemplateLoader(loaderList.toArray(new FileTemplateLoader[]{})));
 
         if(!StringUtils.isBlank(templateFileName))
         {
-            System.out.println("Template file name - " + templateFileName);
+            log.debug("Template file name - " + templateFileName);
         }
         else
         {
@@ -203,7 +216,7 @@ public class RunFreeMarker {
             String[] lines = StringUtils.split(template, "\\n");
             for(int i = 0; i<lines.length; i++)
             {
-                System.out.println(lines[i]);
+                log.debug(lines[i]);
                 printWriter.println(lines[i]);
             }
 
@@ -212,25 +225,25 @@ public class RunFreeMarker {
 
         if(!StringUtils.isBlank(outputFileName))
         {
-            System.out.println("Output file name - " + outputFileName);
+            log.debug("Output file name - " + outputFileName);
         }
         for (String key:input.keySet())
         {
             try {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(new FileInputStream(new File(input.get(key).toString())), writer, "UTF-8");
-                System.out.println("JSON - " + key + ", value - " + input.get(key));
+                log.debug("JSON - " + key + ", value - " + input.get(key));
                 input.put(key, writer.toString());
             }
             catch (FileNotFoundException e)
             {
-                System.out.println("Variable - " + key + ", value - " + input.get(key));
+                log.debug("Variable - " + key + ", value - " + input.get(key));
             }
         }
 
         for (String key:rawInput.keySet())
         {
-            System.out.println("Raw Variable - " + key + ", value - " + rawInput.get(key));
+            log.debug("Raw Variable - " + key + ", value - " + rawInput.get(key));
         }
         input.putAll(rawInput);
 
