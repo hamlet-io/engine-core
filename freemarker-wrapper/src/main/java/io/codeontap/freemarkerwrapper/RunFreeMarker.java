@@ -18,9 +18,10 @@ import io.codeontap.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.*;
 import java.util.*;
@@ -43,15 +44,14 @@ public class RunFreeMarker {
     private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
     private static String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
-    private static org.apache.log4j.Logger log = Logger.getLogger(RunFreeMarker.class);
+    private static final Logger log = LogManager.getLogger();
     public static void main (String args[]) throws IOException, TemplateException, ParseException {
 
         String generationLogLevel = System.getenv(GENERATION_LOG_LEVEL_VAR_NAME);
-        BasicConfigurator.configure();
         if (generationLogLevel != null) {
-            log.setLevel(Level.toLevel(generationLogLevel));
+            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.valueOf(generationLogLevel));
         } else {
-            log.setLevel(Level.INFO);
+            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.INFO);
         }
 
         Attributes mainAttribs = null;
