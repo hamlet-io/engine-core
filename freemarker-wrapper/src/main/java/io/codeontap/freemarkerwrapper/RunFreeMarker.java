@@ -41,18 +41,11 @@ public class RunFreeMarker {
 
     final static Options options = new Options();
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_28;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_30;
     private static String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
     private static final Logger log = LogManager.getLogger();
     public static void main (String args[]) throws IOException, TemplateException, ParseException {
-
-        String generationLogLevel = System.getenv(GENERATION_LOG_LEVEL_VAR_NAME);
-        if (generationLogLevel != null) {
-            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.valueOf(generationLogLevel));
-        } else {
-            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.INFO);
-        }
 
         Attributes mainAttribs = null;
         String version = "";
@@ -77,6 +70,12 @@ public class RunFreeMarker {
         directoryOption.setValueSeparator(';');
 
         Option versionOption = new Option("?", "version",false, "display this help.");
+        Option debugOption = new Option(null, "debug",false, "set logging level to debug.");
+        Option traceOption = new Option(null, "trace",false, "set logging level to trace.");
+        Option infoOption = new Option(null, "info",false, "set logging level to info.");
+        Option warnOption = new Option(null, "warn",false, "set logging level to warn.");
+        Option errorOption = new Option(null, "error",false, "set logging level to error.");
+        Option fatalOption = new Option(null, "fatal",false, "set logging level to fatal.");
 
         Option inputOption = new Option("i", true, "template file.");
 
@@ -108,11 +107,39 @@ public class RunFreeMarker {
         options.addOption(cmdbPathMappingOption);
         options.addOption(cmdbNamesOption);
         options.addOption(cmdbBaseNameOption);
+        options.addOption(debugOption);
+        options.addOption(traceOption);
+        options.addOption(infoOption);
+        options.addOption(warnOption);
+        options.addOption(errorOption);
+        options.addOption(fatalOption);
 
         HelpFormatter formatter = new HelpFormatter();
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse( options, args);
+
+        String generationLogLevel = System.getenv(GENERATION_LOG_LEVEL_VAR_NAME);
+
+        if(cmd.hasOption(traceOption.getLongOpt())){
+            generationLogLevel = traceOption.getLongOpt();
+        } else if(cmd.hasOption(debugOption.getLongOpt())){
+            generationLogLevel = debugOption.getLongOpt();
+        } else if(cmd.hasOption(infoOption.getLongOpt())){
+            generationLogLevel = infoOption.getLongOpt();
+        } else if(cmd.hasOption(warnOption.getLongOpt())){
+            generationLogLevel = warnOption.getLongOpt();
+        } else if(cmd.hasOption(errorOption.getLongOpt())){
+            generationLogLevel = errorOption.getLongOpt();
+        } else if(cmd.hasOption(fatalOption.getLongOpt())){
+            generationLogLevel = fatalOption.getLongOpt();
+        }
+
+        if (generationLogLevel != null) {
+            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.valueOf(generationLogLevel));
+        } else {
+            Configurator.setLevel("io.codeontap.freemarkerwrapper.RunFreeMarker", Level.INFO);
+        }
 
         if(cmd.hasOption(versionOption.getOpt())){
             log.info(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
@@ -133,7 +160,7 @@ public class RunFreeMarker {
 
         while (optionIterator.hasNext()){
             Option option = optionIterator.next();
-            String opt = option.getOpt();
+            String opt = StringUtils.defaultIfEmpty(option.getOpt(),"");
             String[] values = option.getValues();
             if(opt.equals(inputOption.getOpt())){
                 templateFileName = option.getValue();
