@@ -164,9 +164,12 @@ public class CMDBProcessor extends LayerProcessor {
         fileSystem = processCMDBFileSystem(cmdbMeta.getBaseCMDB(), buildCMDBFileSystem(
                 cmdbMeta.getBaseCMDB(), cmdbMeta.getCMDBs(), cmdbMeta.isUseCMDBPrefix(), cmdbMeta.getLayersNames(), true));
 
-        fileSystemShareVariableName = "cmdbFileSystem";
-        layerMapShareVariableName = "cmdbLayerMap";
-        setSharedVariables();
+        try {
+            configuration.setSharedVariable("fileSystem", fileSystem);
+            configuration.setSharedVariable("layerMap", layerMap);
+        } catch (TemplateModelException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
