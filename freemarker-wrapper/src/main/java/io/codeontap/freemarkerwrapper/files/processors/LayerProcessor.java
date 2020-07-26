@@ -81,15 +81,19 @@ public abstract class LayerProcessor {
                 if (result != null) {
                     if (pathToCreate.equals(pathToScan))
                         return 0;
-                    String layerPath = StringUtils.substringAfter(layer.getPath(), pathToScan.toString());
+                    String layerPath = StringUtils.substringAfter(layer.getPath(), forceUnixStyle(pathToScan.toString()));
                     // TODO: refactor this ugly layerPath calculation
                     if (layer.getPath().equalsIgnoreCase(pathToScan.toString())) {
                         layerPath = "";
-                    } else if ("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString())) {
+                    } else if ("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString()) && !"\\".equalsIgnoreCase(pathToScan.toString())) {
                         layerPath = pathToScan.toString();
                     }
+
                     String commonPath = StringUtils.substringBeforeLast(layer.getPath(), layerPath);
-                    String newPath = StringUtils.substringAfter(pathToCreate.toString(), commonPath);
+                    /*if(commonPath.equalsIgnoreCase("/"))
+                        commonPath = pathToCreate.getFileSystem().getSeparator();*/
+
+                    String newPath = StringUtils.substringAfter(forceUnixStyle(pathToCreate.toString()), commonPath);
                     Path fsNewPath = Paths.get(getStartingDir(StringUtils.substringBeforeLast(result.toString(), layerPath)).concat(newPath));
                     File newDirectory = new File(fsNewPath.toString());
                     if (meta.isParents()) {
@@ -614,11 +618,17 @@ public abstract class LayerProcessor {
                 path = null;
             }
         }
-        if (path != null && Files.isDirectory(Paths.get(path))) {
-            return Paths.get(path);
-        } else {
+        try {
+            if (path != null && Files.isDirectory(Paths.get(path))) {
+                return Paths.get(path);
+            } else {
+                return null;
+            }
+        }catch (InvalidPathException e){
+            e.printStackTrace();
             return null;
         }
+
     }
 
     private String getPathOnLayerFileSystem(String pathOnFileSystem, Layer layer) {
