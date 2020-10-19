@@ -18,12 +18,15 @@ import io.codeontap.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.*;
+import java.nio.file.FileSystem;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -186,6 +189,9 @@ public class RunFreeMarker {
 
             else if (opt.equals(directoryOption.getOpt())) {
                 for (String directory:values){
+                    if(SystemUtils.IS_OS_WINDOWS && directory.startsWith("/") && directory.length()>2){
+                        directory = directory.substring(0,2).concat(":").concat(directory.substring(2));
+                    }
                     directories.add(directory);
                     loaderList.add(new FileTemplateLoader(new File(directory)));
                 }
