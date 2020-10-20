@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>freemarker-wrapper</artifactId>
-    <groupId>io.codeontap</groupId>
-    <version>1.12.1-rc2</version>
+    <groupId>io.hamlet</groupId>
+    <version>1.12.1-rc3</version>
     <build>
         <plugins>
             <plugin>
@@ -23,7 +23,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>io.codeontap.freemarkerwrapper.RunFreeMarker</mainClass>
+                            <mainClass>io.hamlet.freemarkerwrapper.RunFreeMarker</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
