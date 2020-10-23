@@ -188,9 +188,10 @@ public class RunFreeMarker {
             else if (opt.equals(directoryOption.getOpt())) {
                 for (String directory:values){
                     if(SystemUtils.IS_OS_WINDOWS && directory.startsWith("/") && directory.length()>2){
-                        directory = directory.substring(0,2).concat(":").concat(directory.substring(2));
+                        directory = directory.substring(1,2).toUpperCase().concat(":").concat(directory.substring(2));
                     }
                     directories.add(directory);
+                    log.debug("Directory to be added to the template loader: " + directory);
                     loaderList.add(new FileTemplateLoader(new File(directory)));
                 }
             }
