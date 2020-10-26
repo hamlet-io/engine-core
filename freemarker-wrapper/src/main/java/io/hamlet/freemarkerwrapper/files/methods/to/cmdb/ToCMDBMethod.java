@@ -36,7 +36,7 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         TemplateModelIterator iterator = options.keys().iterator();
         boolean append = Boolean.FALSE;
         boolean sync = Boolean.TRUE;
-        String format = null;
+        String format = "json";
         while (iterator.hasNext()){
             TemplateModel key = iterator.next();
             if ("Append".equalsIgnoreCase(key.toString())){
