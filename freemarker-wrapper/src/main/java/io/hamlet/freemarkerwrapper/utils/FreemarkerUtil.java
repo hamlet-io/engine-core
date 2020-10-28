@@ -71,15 +71,15 @@ public class FreemarkerUtil {
      */
     public static Object ftlVarToCoreJavaObject(TemplateModel m)
             throws TemplateModelException {
-        Object o;
+        /*Object o;*/
 
         if (m instanceof TemplateHashModel) {
-            if (m instanceof WrapperTemplateModel) {
+            /*if (m instanceof WrapperTemplateModel) {
                 o = ((WrapperTemplateModel) m).getWrappedObject();
                 if (o instanceof Map) {
                     return o; //!!
                 }
-            }
+            }*/
             if (m instanceof TemplateHashModelEx) {
                 Map res = new HashMap();
                 TemplateHashModelEx hash = (TemplateHashModelEx) m;
@@ -97,12 +97,12 @@ public class FreemarkerUtil {
                                 + "keys can't be enumerated.");
             }
         } else if (m instanceof TemplateSequenceModel) {
-            if (m instanceof WrapperTemplateModel) {
+            /*if (m instanceof WrapperTemplateModel) {
                 o = ((WrapperTemplateModel) m).getWrappedObject();
                 if (o instanceof List) {
                     return o; //!!
                 }
-            }
+            }*/
             TemplateSequenceModel seq = (TemplateSequenceModel) m;
             int ln = seq.size();
             List res = new ArrayList(ln);
