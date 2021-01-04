@@ -541,7 +541,7 @@ public abstract class LayerProcessor {
             if (startingDir == null)
                 return files;
             FileFinder.Finder finder = new FileFinder.Finder(meta.getFilenameGlob(), meta.isIgnoreDotDirectories(), meta.isIgnoreDotFiles());
-            String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()));
+            String relativeLayerPath = StringUtils.substringAfter(forceUnixStyle(layer.getPath()), forceUnixStyle(meta.getStartingPath()).concat("/"));
             int relativeLayerPathDepth = StringUtils.split(relativeLayerPath, "/").length;
             Integer depth = Integer.MAX_VALUE;
             if (meta.getMaxDepth() != null) {
