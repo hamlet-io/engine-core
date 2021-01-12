@@ -316,6 +316,9 @@ public abstract class LayerProcessor {
             }
         }
 
+        Path matchParentPath = null;
+
+        boolean matchFound = false;
         for (String regex : refinedRegexList) {
             for (String layerName : meta.getLayersNames()) {
                 Layer layer = layerMap.get(layerName);
@@ -323,7 +326,6 @@ public abstract class LayerProcessor {
                     continue;
                 }
 
-                boolean matchFound = false;
                 Pattern p = null;
                 if (meta.isCaseSensitive()) {
                     p = Pattern.compile(regex);
@@ -333,8 +335,11 @@ public abstract class LayerProcessor {
 
                 // get physical starting dir for the current layer
                 for (Path file : getFilesPerLayer(meta, layer)) {
+                    if (matchParentPath!=null && meta.isIgnoreSubtreeAfterMatch() && file.getParent().startsWith(matchParentPath))
+                        continue;
                     String path = file.toString();
                     String layerPath = getPathOnLayerFileSystem(path, layer);
+                    matchFound = false;
                     Matcher m = p.matcher(layerPath);
                     if (m.matches()) {
                         if (meta.isCaseSensitive()) {
@@ -349,10 +354,12 @@ public abstract class LayerProcessor {
                             }
                         }
                         if (matchFound) {
+                            matchParentPath = file.getParent();
+
                             layerFilesMapping.put(layerPath, path);
                             layerPhysicalFilesMapping.put(path, layer.getName());
 
-                            if (meta.isStopAfterFirstMatch() || meta.isIgnoreSubtreeAfterMatch())
+                            if (meta.isStopAfterFirstMatch())
                                 break;
                         }
                     }
@@ -360,6 +367,8 @@ public abstract class LayerProcessor {
                 if (meta.isStopAfterFirstMatch() && matchFound)
                     break;
             }
+            if (meta.isStopAfterFirstMatch() && matchFound)
+                break;
         }
 
         for (String file : layerFilesMapping.keySet()) {
