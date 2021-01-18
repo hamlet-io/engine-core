@@ -15,6 +15,12 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class PluginProcessor extends LayerProcessor {
+
+    public PluginProcessor() {
+        fileSystemShareVariableName = "pluginFileSystem";
+        layerMapShareVariableName = "pluginLayerMap";
+    }
+
     @Override
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
         PluginMeta pluginMeta = (PluginMeta) meta;
@@ -31,8 +37,6 @@ public class PluginProcessor extends LayerProcessor {
             }
         }
 
-        fileSystemShareVariableName = "pluginFileSystem";
-        layerMapShareVariableName = "pluginLayerMap";
         setSharedVariables();
     }
 
