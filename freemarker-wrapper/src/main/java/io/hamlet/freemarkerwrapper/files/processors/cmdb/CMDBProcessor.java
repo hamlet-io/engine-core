@@ -18,6 +18,10 @@ import java.util.*;
 
 public class CMDBProcessor extends LayerProcessor {
 
+    public CMDBProcessor(){
+        fileSystemShareVariableName = "cmdbFileSystem";
+        layerMapShareVariableName = "cmdbLayerMap";
+}
 
     public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
         CMDBMeta cmdbMeta = (CMDBMeta)meta;
@@ -163,8 +167,6 @@ public class CMDBProcessor extends LayerProcessor {
         fileSystem = processCMDBFileSystem(cmdbMeta.getBaseCMDB(), buildCMDBFileSystem(
                 cmdbMeta.getBaseCMDB(), cmdbMeta.getCMDBs(), cmdbMeta.isUseCMDBPrefix(), cmdbMeta.getLayersNames(), true));
 
-        fileSystemShareVariableName = "cmdbFileSystem";
-        layerMapShareVariableName = "cmdbLayerMap";
         setSharedVariables();
     }
 
