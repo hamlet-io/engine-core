@@ -54,7 +54,7 @@ public abstract class LayerProcessor {
     }
 
     public JsonArray getLayers(LayerMeta meta) throws RunFreeMarkerException {
-        createLayerFileSystem(meta);
+        checkFileSystem(meta);
         postProcessMeta(meta);
         return buildLayers(meta).build();
     }
@@ -70,7 +70,7 @@ public abstract class LayerProcessor {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
-        createLayerFileSystem(meta);
+        checkFileSystem(meta);
         postProcessMeta(meta);
         Path pathToCreate = Paths.get(meta.getStartingPath());
         Path pathToScan = Paths.get(meta.getStartingPath());
@@ -120,7 +120,7 @@ public abstract class LayerProcessor {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
-        createLayerFileSystem(meta);
+        checkFileSystem(meta);
         postProcessMeta(meta);
         Path sourceDirectory = getExistingDirectory(meta.getLayersNames(), meta.getToPath());
         if (sourceDirectory != null) {
@@ -158,7 +158,7 @@ public abstract class LayerProcessor {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
-        createLayerFileSystem(meta);
+        checkFileSystem(meta);
         postProcessMeta(meta);
 
 
@@ -188,7 +188,7 @@ public abstract class LayerProcessor {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
-        createLayerFileSystem(meta);
+        checkFileSystem(meta);
         postProcessMeta(meta);
 
         CopyOption copyAttributes = null;
@@ -262,21 +262,8 @@ public abstract class LayerProcessor {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
 
-        if (configuration.getSharedVariableNames().contains(fileSystemShareVariableName)){
-            fileSystem = (TreeMap)((DefaultMapAdapter)configuration.getSharedVariable(fileSystemShareVariableName)).getWrappedObject();
-        }
+        checkFileSystem(meta);
 
-        if (configuration.getSharedVariableNames().contains(layerMapShareVariableName)){
-            layerMap = (LinkedHashMap)((DefaultMapAdapter)configuration.getSharedVariable(layerMapShareVariableName)).getWrappedObject();
-        }
-
-        if (fileSystem == null) {
-            createLayerFileSystem(meta);
-        }
-
-/*
-        createLayerFileSystem(meta);
-*/
         postProcessMeta(meta);
 
         if (fileSystem == null) {
@@ -290,7 +277,6 @@ public abstract class LayerProcessor {
 
         List<String> refinedRegexList = refineRegexList(meta.getStartingPath(), meta.getRegexList(),
                 meta.isAddStartingWildcard(), meta.isAddEndingWildcard());
-
         Set<String> layersToSkip = new HashSet<>();
         for (String layerName : meta.getLayersNames()) {
             Layer layer = layerMap.get(layerName);
@@ -704,5 +690,18 @@ public abstract class LayerProcessor {
             return getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
         }
         return null;
+    }
+
+    private void checkFileSystem(LayerMeta meta) throws RunFreeMarkerException{
+        if (configuration.getSharedVariableNames().contains(fileSystemShareVariableName)){
+            fileSystem = (TreeMap)((DefaultMapAdapter)configuration.getSharedVariable(fileSystemShareVariableName)).getWrappedObject();
+        }
+
+        if (configuration.getSharedVariableNames().contains(layerMapShareVariableName)){
+            layerMap = (LinkedHashMap)((DefaultMapAdapter)configuration.getSharedVariable(layerMapShareVariableName)).getWrappedObject();
+        }
+        if (fileSystem == null) {
+            createLayerFileSystem(meta);
+        }
     }
 }

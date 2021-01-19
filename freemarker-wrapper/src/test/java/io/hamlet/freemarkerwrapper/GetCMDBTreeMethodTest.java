@@ -1059,19 +1059,44 @@ public class GetCMDBTreeMethodTest {
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
 
+    }
+
+    @Test
+    public void getCMDBs2() throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getFileTree", new GetCMDBTreeMethod());
+        input.put("getCMDBs", new GetCMDBsMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (getCMDBsTemplateFileActiveOnly).getBytes());
+        String content = getCMDBsAccountsTemplate;
+
+        createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"api", ".cmdb", "{}");
+        createFile(cmdbsPath,"almv2", ".cmdb", "{}");
+
+        Map<String,String> cmdbPathMapping = new HashMap();
+        input.put("cmdbPathMappings", cmdbPathMapping);
+
+        input.put("lookupDirs", Arrays.asList(new String[]{cmdbsPath}));
         input.put("CMDBNames", Arrays.asList(new String[]{"accounts", "api"}));
-        byteArrayOutputStream.reset();
-        consoleWriter.flush();
+        input.put("baseCMDB","accounts");
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
         freeMarkerTemplate.process(input, consoleWriter);
-        output = new String(byteArrayOutputStream.toByteArray());
-        m = p.matcher(output);
-        count = 0;
+        String output = new String(byteArrayOutputStream.toByteArray());
+        Pattern p = Pattern.compile("Name : ");
+        Matcher m = p.matcher(output);
+        int count = 0;
         while (m.find())
             count++;
         Assert.assertEquals(2, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
-
     }
 
     @Test
