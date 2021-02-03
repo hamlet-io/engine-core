@@ -17,13 +17,7 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         if (args.size() != 3) {
             throw new TemplateModelException("Wrong arguments");
         }
-        Object pathObj = args.get(0);
-        String path = null;
-        if (pathObj instanceof SimpleScalar){
-            path = pathObj.toString();
-        } else if (pathObj instanceof JsonStringAdapter){
-            path = ((JsonStringAdapter) pathObj).getAsString();
-        }
+        String path = FreemarkerUtil.getOptionStringValue(args.get(0));
 
         Object contentObj  = FreemarkerUtil.ftlVarToCoreJavaObject((TemplateModel)args.get(1));
 
@@ -38,15 +32,17 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         boolean sync = Boolean.TRUE;
         String format = "json";
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("Append".equalsIgnoreCase(key.toString())){
-                append = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("Append".equalsIgnoreCase(key)){
+                append = ((TemplateBooleanModel) keyObj).getAsBoolean();
             }
-            else if ("Synch".equalsIgnoreCase(key.toString())){
-                sync = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Synch".equalsIgnoreCase(key)){
+                sync = ((TemplateBooleanModel) keyObj).getAsBoolean();
             }
-            else if ("Format".equalsIgnoreCase(key.toString())){
-                format = ((SimpleScalar) options.get(key.toString())).getAsString();
+            else if ("Format".equalsIgnoreCase(key)){
+                format = FreemarkerUtil.getOptionStringValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;

@@ -6,6 +6,7 @@ import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.rm.RmLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
+import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,7 @@ public class RmCMDBMethod extends RmLayerMethod implements TemplateMethodModelEx
             throw new TemplateModelException("Wrong arguments");
         }
         Object pathObj = args.get(0);
-        String path = null;
-        if (pathObj instanceof SimpleScalar){
-            path = pathObj.toString();
-        } else if (pathObj instanceof JsonStringAdapter){
-            path = ((JsonStringAdapter) pathObj).getAsString();
-        }
+        String path = FreemarkerUtil.getOptionStringValue(pathObj);
 
         meta = new CMDBMeta();
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();

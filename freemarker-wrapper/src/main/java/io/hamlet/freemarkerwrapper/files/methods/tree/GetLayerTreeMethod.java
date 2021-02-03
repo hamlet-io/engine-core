@@ -6,6 +6,7 @@ import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.LayerMeta;
 import io.hamlet.freemarkerwrapper.files.processors.LayerProcessor;
+import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import javax.json.JsonObject;
 import java.util.ArrayList;
@@ -22,13 +23,7 @@ public abstract class GetLayerTreeMethod {
         if (args.size() != 2) {
             throw new TemplateModelException("Wrong arguments");
         }
-        Object startingPathObj = args.get(0);
-        String startingPath = null;
-        if (startingPathObj instanceof SimpleScalar){
-            startingPath = startingPathObj.toString();
-        } else if (startingPathObj instanceof JsonStringAdapter){
-            startingPath = ((JsonStringAdapter) startingPathObj).getAsString();
-        }
+        String startingPath = FreemarkerUtil.getOptionStringValue(args.get(0));
 
         options = (TemplateHashModelEx)args.get(1);
         TemplateModelIterator iterator = options.keys().iterator();
@@ -47,35 +42,36 @@ public abstract class GetLayerTreeMethod {
         String filenameGlob = "*";
 
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("Regex".equalsIgnoreCase(key.toString())){
-                Object regex = options.get(key.toString());
-                if(regex instanceof TemplateSequenceModel)
-                    regexSequence = (TemplateSequenceModel)regex;
-                else if(regex instanceof SimpleScalar)
-                    regexScalar = (SimpleScalar)regex;
-            } else if ("IgnoreDotDirectories".equalsIgnoreCase(key.toString())){
-                ignoreDotDirectories = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("IgnoreDotFiles".equalsIgnoreCase(key.toString())){
-                ignoreDotFiles = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("AddStartingWildcard".equalsIgnoreCase(key.toString())){
-                addStartingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("AddEndingWildcard".equalsIgnoreCase(key.toString())){
-                addEndingWildcard = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("StopAfterFirstMatch".equalsIgnoreCase(key.toString())){
-                stopAfterFirstMatch = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("IgnoreSubtreeAfterMatch".equalsIgnoreCase(key.toString())){
-                ignoreSubtreeAfterMatch = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("MinDepth".equalsIgnoreCase(key.toString())){
-                minDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
-            } else if ("MaxDepth".equalsIgnoreCase(key.toString())){
-                maxDepth = ((TemplateNumberModel) options.get(key.toString())).getAsNumber();
-            } else if (meta.getIncludeInformationOptionName().equalsIgnoreCase(key.toString())) {
-                includeInformation = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("CaseSensitive".equalsIgnoreCase(key.toString())){
-                caseSensitive = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
-            } else if ("FilenameGlob".equalsIgnoreCase(key.toString())){
-                filenameGlob = ((SimpleScalar) options.get(key.toString())).getAsString();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("Regex".equalsIgnoreCase(key)){
+                if(keyObj instanceof TemplateSequenceModel)
+                    regexSequence = (TemplateSequenceModel)keyObj;
+                else if(keyObj instanceof SimpleScalar)
+                    regexScalar = (SimpleScalar)keyObj;
+            } else if ("IgnoreDotDirectories".equalsIgnoreCase(key)){
+                ignoreDotDirectories = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("IgnoreDotFiles".equalsIgnoreCase(key)){
+                ignoreDotFiles = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("AddStartingWildcard".equalsIgnoreCase(key)){
+                addStartingWildcard = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("AddEndingWildcard".equalsIgnoreCase(key)){
+                addEndingWildcard = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("StopAfterFirstMatch".equalsIgnoreCase(key)){
+                stopAfterFirstMatch = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("IgnoreSubtreeAfterMatch".equalsIgnoreCase(key)){
+                ignoreSubtreeAfterMatch = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("MinDepth".equalsIgnoreCase(key)){
+                minDepth = ((TemplateNumberModel) keyObj).getAsNumber();
+            } else if ("MaxDepth".equalsIgnoreCase(key)){
+                maxDepth = ((TemplateNumberModel) keyObj).getAsNumber();
+            } else if (meta.getIncludeInformationOptionName().equalsIgnoreCase(key)) {
+                includeInformation = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("CaseSensitive".equalsIgnoreCase(key)){
+                caseSensitive = ((TemplateBooleanModel) keyObj).getAsBoolean();
+            } else if ("FilenameGlob".equalsIgnoreCase(key)){
+                filenameGlob = FreemarkerUtil.getOptionStringValue(keyObj);
             }
         }
         List<String> regexList = new ArrayList<>();

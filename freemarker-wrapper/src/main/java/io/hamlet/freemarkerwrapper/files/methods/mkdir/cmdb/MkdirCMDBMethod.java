@@ -6,6 +6,7 @@ import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.mkdir.MkdirLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
+import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -16,13 +17,7 @@ public class MkdirCMDBMethod extends MkdirLayerMethod implements TemplateMethodM
         if (args.size() != 2) {
             throw new TemplateModelException("Wrong arguments");
         }
-        Object startingPathObj = args.get(0);
-        String startingPath = null;
-        if (startingPathObj instanceof SimpleScalar){
-            startingPath = startingPathObj.toString();
-        } else if (startingPathObj instanceof JsonStringAdapter){
-            startingPath = ((JsonStringAdapter) startingPathObj).getAsString();
-        }
+        String startingPath = FreemarkerUtil.getOptionStringValue(args.get(0));
 
         meta = new CMDBMeta();
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
