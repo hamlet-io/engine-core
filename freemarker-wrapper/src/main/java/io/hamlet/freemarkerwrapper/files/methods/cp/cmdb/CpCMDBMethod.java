@@ -6,6 +6,7 @@ import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.cp.CpLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
+import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -16,21 +17,8 @@ public class CpCMDBMethod extends CpLayerMethod implements TemplateMethodModelEx
         if (args.size() != 3) {
             throw new TemplateModelException("Wrong arguments");
         }
-        Object copyFromPathObj = args.get(0);
-        String copyFromPath = null;
-        if (copyFromPathObj instanceof SimpleScalar){
-            copyFromPath = copyFromPathObj.toString();
-        } else if (copyFromPathObj instanceof JsonStringAdapter){
-            copyFromPath = ((JsonStringAdapter) copyFromPathObj).getAsString();
-        }
-
-        Object copyToPathObj = args.get(1);
-        String copyToPath = null;
-        if (copyToPathObj instanceof SimpleScalar){
-            copyToPath = copyToPathObj.toString();
-        } else if (copyToPathObj instanceof JsonStringAdapter){
-            copyToPath = ((JsonStringAdapter) copyToPathObj).getAsString();
-        }
+        String copyFromPath = FreemarkerUtil.getOptionStringValue(args.get(0));
+        String copyToPath = FreemarkerUtil.getOptionStringValue(args.get(1));
 
         meta = new CMDBMeta();
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();

@@ -22,17 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import freemarker.ext.util.WrapperTemplateModel;
-import freemarker.template.TemplateBooleanModel;
-import freemarker.template.TemplateCollectionModel;
-import freemarker.template.TemplateDateModel;
-import freemarker.template.TemplateHashModel;
-import freemarker.template.TemplateHashModelEx;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
-import freemarker.template.TemplateModelIterator;
-import freemarker.template.TemplateNumberModel;
-import freemarker.template.TemplateScalarModel;
-import freemarker.template.TemplateSequenceModel;
+import freemarker.template.*;
+import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 
 /**
  * FreeMarker related utilities.
@@ -131,5 +122,14 @@ public class FreemarkerUtil {
             // Do not convert
             return m; //!!
         }
+    }
+
+    public static String getOptionStringValue(Object keyObject) throws TemplateModelException {
+        if (keyObject instanceof SimpleScalar){
+            return keyObject.toString();
+        } else if (keyObject instanceof JsonStringAdapter){
+            return ((JsonStringAdapter) keyObject).getAsString();
+        } else
+            throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
     }
 }
