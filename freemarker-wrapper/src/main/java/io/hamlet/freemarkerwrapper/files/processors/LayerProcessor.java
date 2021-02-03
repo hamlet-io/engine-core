@@ -373,6 +373,7 @@ public abstract class LayerProcessor {
             if (Files.isDirectory(file)) {
                 jsonObjectBuilder.add("IsDirectory", Boolean.TRUE);
             } else {
+                jsonObjectBuilder.add("IsDirectory", Boolean.FALSE);
                 String contents = null;
                 try (FileInputStream inputStream = new FileInputStream(file.toString())) {
                     contents = IOUtils.toString(inputStream);
