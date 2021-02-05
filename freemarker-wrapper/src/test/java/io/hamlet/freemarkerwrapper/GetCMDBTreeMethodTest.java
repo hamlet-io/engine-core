@@ -1107,9 +1107,10 @@ public class GetCMDBTreeMethodTest {
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
-        Files.write(Paths.get(fileName), (String.format(mkDirTemplate, "/non-exist/products/new-product/another-dir", "false", "false")).getBytes());
+        Files.write(Paths.get(fileName), (String.format(mkDirTemplate, "state/cf/e5/default/baseline/default", "false", "false")).getBytes());
         String content = getCMDBsAccountsTemplate;
         createFile(cmdbsPath,"accounts", ".cmdb", content);
+        createFile(cmdbsPath,"accoun", ".cmdb", content);
         createFile(cmdbsPath,"api", ".cmdb", "{}");
         createFile(cmdbsPath,"almv2", ".cmdb", "{}");
         createFile(cmdbsPath,"accounts/products", "test.json", "{}");
