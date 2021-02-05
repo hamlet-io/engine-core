@@ -461,11 +461,17 @@ public abstract class LayerProcessor {
         }
         return null;
     }
-
     protected String forceUnixStyle(final String path) {
+        return forceUnixStyle(path, false);
+    }
+    protected String forceUnixStyle(final String path, boolean directoryWithEndingSlash) {
         String result = StringUtils.replaceEachRepeatedly(path, new String[]{"\\", "//"}, new String[]{"/", "/"});
-        if (!"/".equalsIgnoreCase(result) && result.endsWith("/"))
-            result = StringUtils.substringBeforeLast(result, "/");
+        if(directoryWithEndingSlash && !result.endsWith("/")){
+            result = result.concat("/");
+        } else {
+            if (!"/".equalsIgnoreCase(result) && result.endsWith("/"))
+                result = StringUtils.substringBeforeLast(result, "/");
+        }
         return result;
     }
 
@@ -585,12 +591,11 @@ public abstract class LayerProcessor {
      * @return
      */
     private Path getDirectoryOnFileSystem(String startingPath, String layerPath, String fileSystemPath) {
-        startingPath = forceUnixStyle(startingPath);
-        fileSystemPath = forceUnixStyle(fileSystemPath);
+        startingPath = forceUnixStyle(startingPath, true);
+        fileSystemPath = forceUnixStyle(fileSystemPath, true);
+        layerPath = forceUnixStyle(layerPath, true);
         if (StringUtils.equalsIgnoreCase("/", layerPath)) {
             fileSystemPath = fileSystemPath.concat("/");
-        } else {
-            layerPath = forceUnixStyle(layerPath);
         }
         String path;
         if (layerPath.startsWith(startingPath)) {
