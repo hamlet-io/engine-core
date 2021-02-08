@@ -83,7 +83,7 @@ public abstract class LayerProcessor {
                         return 0;
                     String layerPath = StringUtils.substringAfter(layer.getPath(), forceUnixStyle(pathToScan.toString()));
                     if ("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString()) && !"\\".equalsIgnoreCase(pathToScan.toString())) {
-                        layerPath = pathToScan.toString();
+                        layerPath = forceUnixStyle(pathToScan.toString());
                     }
 
                     String commonPath = StringUtils.substringBeforeLast(layer.getPath(), layerPath);
