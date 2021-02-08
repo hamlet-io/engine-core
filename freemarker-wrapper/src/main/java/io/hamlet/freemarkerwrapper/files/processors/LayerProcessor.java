@@ -82,19 +82,16 @@ public abstract class LayerProcessor {
                     if (pathToCreate.equals(pathToScan))
                         return 0;
                     String layerPath = StringUtils.substringAfter(layer.getPath(), forceUnixStyle(pathToScan.toString()));
-                    // TODO: refactor this ugly layerPath calculation
-                    if (layer.getPath().equalsIgnoreCase(pathToScan.toString())) {
-                        layerPath = "";
-                    } else if ("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString()) && !"\\".equalsIgnoreCase(pathToScan.toString())) {
+                    if ("".equalsIgnoreCase(layerPath) && !"/".equalsIgnoreCase(pathToScan.toString()) && !"\\".equalsIgnoreCase(pathToScan.toString())) {
                         layerPath = pathToScan.toString();
                     }
 
                     String commonPath = StringUtils.substringBeforeLast(layer.getPath(), layerPath);
-                    /*if(commonPath.equalsIgnoreCase("/"))
-                        commonPath = pathToCreate.getFileSystem().getSeparator();*/
-
-                    String newPath = StringUtils.substringAfter(forceUnixStyle(pathToCreate.toString()), commonPath);
-                    Path fsNewPath = Paths.get(getStartingDir(StringUtils.substringBeforeLast(result.toString(), layerPath)).concat(newPath));
+                    String newPath = StringUtils.substringAfter(forceUnixStyle(pathToCreate.toString()), layerPath);
+                    if(commonPath.equalsIgnoreCase("/") && newPath.equalsIgnoreCase("")){
+                        newPath = forceUnixStyle(pathToCreate.toString());
+                    }
+                    Path fsNewPath = Paths.get(getStartingDir(result.toString()).concat(newPath));
                     File newDirectory = new File(fsNewPath.toString());
                     if (meta.isParents()) {
                         if (newDirectory.mkdirs()) {
