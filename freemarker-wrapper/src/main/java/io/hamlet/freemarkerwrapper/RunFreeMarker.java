@@ -42,7 +42,7 @@ public class RunFreeMarker {
 
     final static Options options = new Options();
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_30;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_31;
     private static String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
     private static final Logger log = LogManager.getLogger();
