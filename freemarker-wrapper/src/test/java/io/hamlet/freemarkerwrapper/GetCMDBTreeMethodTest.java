@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class GetCMDBTreeMethodTest {
 
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_30;
+    private static Version freemarkerVersion = Configuration.VERSION_2_3_31;
     private static Configuration cfg;
     private static Map<String, Object> input = null;
 
