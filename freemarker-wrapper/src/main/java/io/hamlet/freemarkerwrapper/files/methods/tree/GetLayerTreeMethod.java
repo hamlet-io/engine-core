@@ -40,6 +40,8 @@ public abstract class GetLayerTreeMethod {
         boolean includeInformation = Boolean.FALSE;
         boolean caseSensitive = Boolean.FALSE;
         String filenameGlob = "*";
+        boolean ignoreDirectories = Boolean.FALSE;
+        boolean ignoreFiles = Boolean.FALSE;
 
         while (iterator.hasNext()){
             TemplateModel keyModel = iterator.next();
@@ -51,27 +53,31 @@ public abstract class GetLayerTreeMethod {
                 else if(keyObj instanceof SimpleScalar)
                     regexScalar = (SimpleScalar)keyObj;
             } else if ("IgnoreDotDirectories".equalsIgnoreCase(key)){
-                ignoreDotDirectories = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                ignoreDotDirectories = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("IgnoreDotFiles".equalsIgnoreCase(key)){
-                ignoreDotFiles = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                ignoreDotFiles = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("AddStartingWildcard".equalsIgnoreCase(key)){
-                addStartingWildcard = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                addStartingWildcard = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("AddEndingWildcard".equalsIgnoreCase(key)){
-                addEndingWildcard = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                addEndingWildcard = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("StopAfterFirstMatch".equalsIgnoreCase(key)){
-                stopAfterFirstMatch = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                stopAfterFirstMatch = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("IgnoreSubtreeAfterMatch".equalsIgnoreCase(key)){
-                ignoreSubtreeAfterMatch = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                ignoreSubtreeAfterMatch = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("MinDepth".equalsIgnoreCase(key)){
-                minDepth = ((TemplateNumberModel) keyObj).getAsNumber();
+                minDepth = FreemarkerUtil.getOptionNumberValue(keyObj);
             } else if ("MaxDepth".equalsIgnoreCase(key)){
-                maxDepth = ((TemplateNumberModel) keyObj).getAsNumber();
+                maxDepth = FreemarkerUtil.getOptionNumberValue(keyObj);
             } else if (meta.getIncludeInformationOptionName().equalsIgnoreCase(key)) {
-                includeInformation = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                includeInformation = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("CaseSensitive".equalsIgnoreCase(key)){
-                caseSensitive = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                caseSensitive = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("FilenameGlob".equalsIgnoreCase(key)){
                 filenameGlob = FreemarkerUtil.getOptionStringValue(keyObj);
+            } else if ("IgnoreDirectories".equalsIgnoreCase(key)){
+                ignoreDirectories = FreemarkerUtil.getOptionBooleanValue(keyObj);
+            } else if ("IgnoreFiles".equalsIgnoreCase(key)){
+                ignoreFiles = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
         }
         List<String> regexList = new ArrayList<>();
@@ -104,6 +110,8 @@ public abstract class GetLayerTreeMethod {
         }
         meta.setCaseSensitive(caseSensitive);
         meta.setFilenameGlob(filenameGlob);
+        meta.setIgnoreDirectories(ignoreDirectories);
+        meta.setIgnoreFiles(ignoreFiles);
     }
 
     public TemplateModel process() {

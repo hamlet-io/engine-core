@@ -927,7 +927,7 @@ public class GetCMDBTreeMethodTest {
         input.put("getPluginTree", new GetPluginTreeMethod());
 
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (getEngineTemplate7).getBytes());
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate7,"provider.json", false, false)).getBytes());
 
         createFile(pluginsPath,"aws/base/", "provider.json", "{}");
         createFile(pluginsPath,"azure/base/path", "provider.json", "{}");
@@ -966,29 +966,216 @@ public class GetCMDBTreeMethodTest {
         Assert.assertEquals(0, count);
         System.out.println("--------------------------- OUTPUT ---------------------------");
         System.out.write(output.getBytes());
+    }
 
-        /*input.put("pluginLayers", Arrays.asList(new String[]{
-                pluginsPath.concat("/test/test"),
-                pluginsPath.concat("/test/azure"),
+    @Test
+    public void getPluginTree81 () throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate8,false, false)).getBytes());
+
+        createFile(pluginsPath,"aws/base/", "provider.json", "{}");
+        createFile(pluginsPath,"azure/base/path", "provider.json", "{}");
+        createFile(pluginsPath,"test/base/test/test", "provider.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
         }));
-        byteArrayOutputStream.reset();
-        consoleWriter.flush();
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
         freeMarkerTemplate.process(input, consoleWriter);
-        output = new String(byteArrayOutputStream.toByteArray());
-        p = Pattern.compile("Name : azure");
+        String output = new String(byteArrayOutputStream.toByteArray());
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        Pattern p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(2, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test/test");
         m = p.matcher(output);
         count = 0;
         while (m.find())
             count++;
         Assert.assertEquals(1, count);
-        p = Pattern.compile("Name : aws");
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(2, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path/provider.json");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/aws/base/provider.json\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+
+    }
+
+    @Test
+    public void getPluginTree82 () throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate8,true, false)).getBytes());
+
+        createFile(pluginsPath,"aws/base/", "provider.json", "{}");
+        createFile(pluginsPath,"azure/base/path", "provider.json", "{}");
+        createFile(pluginsPath,"test/base/test/test", "provider.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        Pattern p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test\n");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test/test\n");
         m = p.matcher(output);
         count = 0;
         while (m.find())
             count++;
         Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path/provider.json");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/aws/base/provider.json\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+
+    }
+
+    @Test
+    public void getPluginTree83 () throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate8,false, true)).getBytes());
+
+        createFile(pluginsPath,"aws/base/", "provider.json", "{}");
+        createFile(pluginsPath,"azure/base/path", "provider.json", "{}");
+        createFile(pluginsPath,"test/base/test/test", "provider.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
         System.out.println("--------------------------- OUTPUT ---------------------------");
-        System.out.write(output.getBytes());*/
+        System.out.write(output.getBytes());
+        Pattern p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test\n");
+        Matcher m = p.matcher(output);
+        int count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/test/base/test/test\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(1, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/azure/base/path/provider.json");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+        p = Pattern.compile("File : /tmp/gen3/plugins/aws/base/provider.json\n");
+        m = p.matcher(output);
+        count = 0;
+        while (m.find())
+            count++;
+        Assert.assertEquals(0, count);
+
+    }
+
+    @Test
+    public void getPluginTree84 () throws IOException, TemplateException{
+        input = new HashMap<String, Object>();
+        input.put("getPluginTree", new GetPluginTreeMethod());
+
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(getEngineTemplate8,true, true)).getBytes());
+
+        createFile(pluginsPath,"aws/base/", "provider.json", "{}");
+        createFile(pluginsPath,"azure/base/path", "provider.json", "{}");
+        createFile(pluginsPath,"test/base/test/test", "provider.json", "{}");
+
+        input.put("pluginLayers", Arrays.asList(new String[]{
+                pluginsPath.concat("/test"),
+                pluginsPath.concat("/azure"),
+                pluginsPath.concat("/aws/")
+        }));
+
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        String output = new String(byteArrayOutputStream.toByteArray());
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
+        Assert.assertEquals(0, output.length());
 
     }
 
@@ -2310,7 +2497,7 @@ public class GetCMDBTreeMethodTest {
             "[/#list]\n";
 
     private final String getEngineTemplate7 = "[#ftl]\n" +
-            "[#assign regex=[\"provider.json\"]]\n" +
+            "[#assign regex=[\"%s\"]]\n" +
             "[#assign candidates =\n" +
             "  getPluginTree(\n" +
             "    \"/\",\n" +
@@ -2320,6 +2507,30 @@ public class GetCMDBTreeMethodTest {
             "        \"AddEndingWildcard\" : false,\n" +
             "        \"MaxDepth\" : 3,\n" +
             "        \"MinDepth\" : 2,\n" +
+            "        \"IgnoreDirectories\" : %s,\n" +
+            "        \"IgnoreFiles\" : %s,\n" +
+            "        \"IncludePluginInformation\" : true\n" +
+            "    }\n" +
+            "  ) ]\n" +
+            "[#list candidates as candidate ]\n" +
+            "[#list candidate as property,value ]\n" +
+            "${property} : [#if (value?is_boolean || value?is_number)]${value?c}[#elseif value?is_hash]#hash#[#elseif value?is_sequence]#is_sequence#[#else]${value}[/#if]\n" +
+            "[#if property==\"Plugin\"]\n" +
+            "Name : ${value.Name}\n" +
+            "File : ${value.File}\n" +
+            "[/#if]\n" +
+            "[/#list]\n" +
+            "[/#list]\n";
+
+    private final String getEngineTemplate8 = "[#ftl]\n" +
+            "[#assign candidates =\n" +
+            "  getPluginTree(\n" +
+            "    \"/\",\n" +
+            "    {\n" +
+            "        \"MaxDepth\" : 3,\n" +
+            "        \"MinDepth\" : 2,\n" +
+            "        \"IgnoreDirectories\" : %s,\n" +
+            "        \"IgnoreFiles\" : %s,\n" +
             "        \"IncludePluginInformation\" : true\n" +
             "    }\n" +
             "  ) ]\n" +

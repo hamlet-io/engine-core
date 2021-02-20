@@ -31,15 +31,17 @@ public class CpCMDBMethod extends CpLayerMethod implements TemplateMethodModelEx
         boolean preserve = Boolean.FALSE;
         boolean sync = Boolean.TRUE;
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("Recurse".equalsIgnoreCase(key.toString())){
-                recurse = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("Recurse".equalsIgnoreCase(key)){
+                recurse = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Preserve".equalsIgnoreCase(key.toString())){
-                preserve = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Preserve".equalsIgnoreCase(key)){
+                preserve = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Synch".equalsIgnoreCase(key.toString())){
-                sync = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Synch".equalsIgnoreCase(key)){
+                sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;

@@ -2,7 +2,6 @@ package io.hamlet.freemarkerwrapper.files.methods.rm.cmdb;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
-import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.rm.RmLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
@@ -17,8 +16,7 @@ public class RmCMDBMethod extends RmLayerMethod implements TemplateMethodModelEx
         if (args.size() != 2) {
             throw new TemplateModelException("Wrong arguments");
         }
-        Object pathObj = args.get(0);
-        String path = FreemarkerUtil.getOptionStringValue(pathObj);
+        String path = FreemarkerUtil.getOptionStringValue(args.get(0));
 
         meta = new CMDBMeta();
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
@@ -31,15 +29,17 @@ public class RmCMDBMethod extends RmLayerMethod implements TemplateMethodModelEx
         boolean force = Boolean.FALSE;
         boolean sync = Boolean.TRUE;
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("Recurse".equalsIgnoreCase(key.toString())){
-                recurse = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("Recurse".equalsIgnoreCase(key)){
+                recurse = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Force".equalsIgnoreCase(key.toString())){
-                force = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Force".equalsIgnoreCase(key)){
+                force = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Synch".equalsIgnoreCase(key.toString())){
-                sync = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Synch".equalsIgnoreCase(key)){
+                sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;

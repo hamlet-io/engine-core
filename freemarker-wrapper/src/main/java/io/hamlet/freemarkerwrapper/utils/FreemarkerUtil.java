@@ -21,8 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import freemarker.ext.util.WrapperTemplateModel;
 import freemarker.template.*;
+import io.hamlet.freemarkerwrapper.files.adapters.JsonBooleanAdapter;
+import io.hamlet.freemarkerwrapper.files.adapters.JsonNumberAdapter;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 
 /**
@@ -129,6 +130,24 @@ public class FreemarkerUtil {
             return keyObject.toString();
         } else if (keyObject instanceof JsonStringAdapter){
             return ((JsonStringAdapter) keyObject).getAsString();
+        } else
+            throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
+    }
+
+    public static boolean getOptionBooleanValue(Object keyObject) throws TemplateModelException {
+        if (keyObject instanceof TemplateBooleanModel){
+            return ((TemplateBooleanModel) keyObject).getAsBoolean();
+        } else if (keyObject instanceof JsonBooleanAdapter){
+            return ((JsonBooleanAdapter) keyObject).getAsBoolean();
+        } else
+            throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
+    }
+
+    public static Number getOptionNumberValue(Object keyObject) throws TemplateModelException {
+        if (keyObject instanceof TemplateNumberModel){
+            return ((TemplateNumberModel) keyObject).getAsNumber();
+        } else if (keyObject instanceof JsonNumberAdapter){
+            return ((JsonNumberAdapter) keyObject).getAsNumber();
         } else
             throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
     }
