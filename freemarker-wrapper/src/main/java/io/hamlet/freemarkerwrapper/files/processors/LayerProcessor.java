@@ -360,6 +360,15 @@ public abstract class LayerProcessor {
 
         for (String key : files.keySet()) {
             Path file = files.get(key);
+            Boolean isDirectoryFlag = Files.isDirectory(file);
+            if(isDirectoryFlag) {
+                if (meta.isIgnoreDirectories())
+                    continue;
+            } else {
+                if (meta.isIgnoreFiles())
+                    continue;
+            }
+
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
             String path = StringUtils.substringBeforeLast(key, file.getFileName().toString());
             String extension = StringUtils.substringAfterLast(file.getFileName().toString(), ".");
@@ -367,7 +376,7 @@ public abstract class LayerProcessor {
             jsonObjectBuilder.add("Path", forceUnixStyle(path));
             jsonObjectBuilder.add("Filename", file.getFileName().toString());
             jsonObjectBuilder.add("Extension", extension);
-            if (Files.isDirectory(file)) {
+            if (isDirectoryFlag) {
                 jsonObjectBuilder.add("IsDirectory", Boolean.TRUE);
             } else {
                 jsonObjectBuilder.add("IsDirectory", Boolean.FALSE);

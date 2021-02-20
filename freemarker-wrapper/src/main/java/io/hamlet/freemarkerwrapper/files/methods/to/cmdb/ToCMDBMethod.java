@@ -2,7 +2,6 @@ package io.hamlet.freemarkerwrapper.files.methods.to.cmdb;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
-import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.to.ToLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
@@ -36,10 +35,10 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
             String key = keyModel.toString();
             Object keyObj = options.get(key);
             if ("Append".equalsIgnoreCase(key)){
-                append = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                append = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
             else if ("Synch".equalsIgnoreCase(key)){
-                sync = ((TemplateBooleanModel) keyObj).getAsBoolean();
+                sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
             else if ("Format".equalsIgnoreCase(key)){
                 format = FreemarkerUtil.getOptionStringValue(keyObj);

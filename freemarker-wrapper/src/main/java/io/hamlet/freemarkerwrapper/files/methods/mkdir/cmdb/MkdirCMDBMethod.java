@@ -2,7 +2,6 @@ package io.hamlet.freemarkerwrapper.files.methods.mkdir.cmdb;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
-import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.mkdir.MkdirLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
@@ -29,12 +28,14 @@ public class MkdirCMDBMethod extends MkdirLayerMethod implements TemplateMethodM
         boolean parents = Boolean.FALSE;
         boolean sync = Boolean.TRUE;
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("Parents".equalsIgnoreCase(key.toString())){
-                parents = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("Parents".equalsIgnoreCase(key)){
+                parents = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Synch".equalsIgnoreCase(key.toString())){
-                sync = ((TemplateBooleanModel) options.get(key.toString())).getAsBoolean();
+            else if ("Synch".equalsIgnoreCase(key)){
+                sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;

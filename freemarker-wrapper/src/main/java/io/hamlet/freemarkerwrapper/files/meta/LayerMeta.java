@@ -30,6 +30,8 @@ public abstract class LayerMeta implements Cloneable{
     private boolean preserve;
     private boolean force;
     private boolean append;
+    private boolean ignoreFiles;
+    private boolean ignoreDirectories;
 
     private String format;
 
@@ -234,5 +236,21 @@ public abstract class LayerMeta implements Cloneable{
 
     public void setContent(Object content) {
         this.content = content;
+    }
+
+    public boolean isIgnoreFiles() {
+        return ignoreFiles;
+    }
+
+    public void setIgnoreFiles(boolean ignoreFiles) {
+        this.ignoreFiles = ignoreFiles;
+    }
+
+    public boolean isIgnoreDirectories() {
+        return ignoreDirectories;
+    }
+
+    public void setIgnoreDirectories(boolean ignoreDirectories) {
+        this.ignoreDirectories = ignoreDirectories;
     }
 }

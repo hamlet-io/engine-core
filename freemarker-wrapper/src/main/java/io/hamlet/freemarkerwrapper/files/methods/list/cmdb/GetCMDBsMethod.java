@@ -5,6 +5,7 @@ import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.meta.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.list.GetLayerListMethod;
 import io.hamlet.freemarkerwrapper.files.processors.cmdb.CMDBProcessor;
+import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -22,12 +23,14 @@ public class GetCMDBsMethod extends GetLayerListMethod implements TemplateMethod
         boolean useCMDBPrefix = Boolean.FALSE;
         boolean activeOnly = Boolean.FALSE;
         while (iterator.hasNext()){
-            TemplateModel key = iterator.next();
-            if ("UseCMDBPrefix".equalsIgnoreCase(key.toString())){
-                useCMDBPrefix = ((TemplateBooleanModel) options.get("UseCMDBPrefix")).getAsBoolean();
+            TemplateModel keyModel = iterator.next();
+            String key = keyModel.toString();
+            Object keyObj = options.get(key);
+            if ("UseCMDBPrefix".equalsIgnoreCase(key)){
+                useCMDBPrefix = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("ActiveOnly".equalsIgnoreCase(key.toString())){
-                activeOnly = ((TemplateBooleanModel) options.get("ActiveOnly")).getAsBoolean();
+            else if ("ActiveOnly".equalsIgnoreCase(key)){
+                activeOnly = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;
