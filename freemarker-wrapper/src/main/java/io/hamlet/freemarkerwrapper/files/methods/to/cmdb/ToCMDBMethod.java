@@ -30,6 +30,8 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         boolean append = Boolean.FALSE;
         boolean sync = Boolean.TRUE;
         String format = "json";
+        String formatting = "compressed";
+        Number indent = 2;
         while (iterator.hasNext()){
             TemplateModel keyModel = iterator.next();
             String key = keyModel.toString();
@@ -40,8 +42,11 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
             else if ("Synch".equalsIgnoreCase(key)){
                 sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
             }
-            else if ("Format".equalsIgnoreCase(key)){
-                format = FreemarkerUtil.getOptionStringValue(keyObj);
+            else if ("Formatting".equalsIgnoreCase(key)){
+                formatting = FreemarkerUtil.getOptionStringValue(keyObj);
+            }
+            else if ("Indent".equalsIgnoreCase(key)){
+                indent = FreemarkerUtil.getOptionNumberValue(keyObj);
             }
         }
         CMDBMeta cmdbMeta = (CMDBMeta)meta;
@@ -54,6 +59,8 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         cmdbMeta.setSync(sync);
         cmdbMeta.setFormat(format);
         cmdbMeta.setContent(contentObj);
+        cmdbMeta.setFormatting(formatting);
+        cmdbMeta.setIndent(indent.intValue());
 
         layerProcessor = new CMDBProcessor();
         return super.process();
