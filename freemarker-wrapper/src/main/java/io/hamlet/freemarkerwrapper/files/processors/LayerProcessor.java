@@ -2,6 +2,9 @@ package io.hamlet.freemarkerwrapper.files.processors;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import freemarker.template.Configuration;
@@ -17,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -161,22 +165,36 @@ public abstract class LayerProcessor {
 
         Object content = meta.getContent();
 
-        final StringWriter writer = new StringWriter();
+        byte[] result;
         if ("json".equalsIgnoreCase(meta.getFormat())) {
             ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
-            objectMapper.writeValue(writer, content);
+            if(StringUtils.equalsIgnoreCase("pretty", meta.getFormatting())) {
+                DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
+                final String indent = String.join("",Collections.nCopies(meta.getIndent(), " "));
+                DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
+                prettyPrinter.indentObjectsWith(indenter);
+                prettyPrinter.indentArraysWith(indenter);
+                result = objectMapper.writer(prettyPrinter).writeValueAsBytes(content);
+            } else {
+                if(StringUtils.equalsIgnoreCase("compressed", meta.getFormatting())){
+                    result = objectMapper.writer().writeValueAsBytes(content);
+                }
+                else throw new RunFreeMarkerException(
+                        String.format("Unexpected formatting value - \"%s\". Allowed values - pretty or compressed (default)", meta.getFormatting()));
+
+            }
         } else if ("yml".equalsIgnoreCase(meta.getFormat()) || "yaml".equalsIgnoreCase(meta.getFormat())) {
             ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-            objectMapper.writeValue(writer, content);
+            result = objectMapper.writer().writeValueAsBytes(content);
         } else {
-            writer.write(content.toString());
+            result = content.toString().getBytes();
         }
 
         Path destinationFile = getDestinationPath(meta, "singleFile");
         if (meta.isAppend()) {
-            Files.write(destinationFile, writer.toString().getBytes(), StandardOpenOption.APPEND);
+            Files.write(destinationFile, result, StandardOpenOption.APPEND);
         } else {
-            Files.write(destinationFile, writer.toString().getBytes());
+            Files.write(destinationFile, result);
         }
         return 0;
     }

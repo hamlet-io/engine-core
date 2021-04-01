@@ -34,6 +34,8 @@ public abstract class LayerMeta implements Cloneable{
     private boolean ignoreDirectories;
 
     private String format;
+    private String formatting;
+    private Integer indent;
 
     private Object content;
 
@@ -252,5 +254,21 @@ public abstract class LayerMeta implements Cloneable{
 
     public void setIgnoreDirectories(boolean ignoreDirectories) {
         this.ignoreDirectories = ignoreDirectories;
+    }
+
+    public String getFormatting() {
+        return formatting;
+    }
+
+    public void setFormatting(String formatting) {
+        this.formatting = formatting;
+    }
+
+    public Integer getIndent() {
+        return indent;
+    }
+
+    public void setIndent(Integer indent) {
+        this.indent = indent;
     }
 }
