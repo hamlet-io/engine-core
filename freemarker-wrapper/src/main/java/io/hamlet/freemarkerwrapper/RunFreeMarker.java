@@ -13,7 +13,7 @@ import io.hamlet.freemarkerwrapper.files.methods.to.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
-import io.hamlet.freemarkerwrapper.files.methods.list.plugin.GetPluginsMethod;
+import io.hamlet.freemarkerwrapper.files.methods.list.plugin.GetPluginLayersMethod;
 import io.hamlet.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
@@ -287,7 +287,7 @@ public class RunFreeMarker {
         input.put("cpCMDB", new CpCMDBMethod());
         input.put("toCMDB", new ToCMDBMethod());
         input.put("rmCMDB", new RmCMDBMethod());
-        input.put("getPlugins", new GetPluginsMethod());
+        input.put("getPluginLayers", new GetPluginLayersMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
         input.put("initialisePluginFileSystem", new InitPluginsMethod());

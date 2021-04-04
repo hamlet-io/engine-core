@@ -8,7 +8,7 @@ import io.hamlet.freemarkerwrapper.files.processors.plugin.PluginProcessor;
 
 import java.util.List;
 
-public class GetPluginsMethod extends GetLayerListMethod implements TemplateMethodModelEx {
+public class GetPluginLayersMethod extends GetLayerListMethod implements TemplateMethodModelEx {
 
     public TemplateModel exec(List args) throws TemplateModelException {
         meta = new PluginMeta();

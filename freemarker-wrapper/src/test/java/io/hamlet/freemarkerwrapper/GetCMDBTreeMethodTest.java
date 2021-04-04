@@ -13,7 +13,7 @@ import io.hamlet.freemarkerwrapper.files.methods.to.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
-import io.hamlet.freemarkerwrapper.files.methods.list.plugin.GetPluginsMethod;
+import io.hamlet.freemarkerwrapper.files.methods.list.plugin.GetPluginLayersMethod;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 
@@ -85,12 +85,12 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
-    public void getPlugins() throws IOException, TemplateException{
+    public void getPluginLayers() throws IOException, TemplateException{
         input = new HashMap<String, Object>();
-        input.put("getPlugins", new GetPluginsMethod());
+        input.put("getPluginLayers", new GetPluginLayersMethod());
 
         String fileName = templatesPath.concat("/file.ftl");
-        Files.write(Paths.get(fileName), (getPluginsTemplate).getBytes());
+        Files.write(Paths.get(fileName), (getPluginLayersTemplate).getBytes());
         createPlugin("aws");
         createPlugin("azure");
 
@@ -2461,10 +2461,10 @@ public class GetCMDBTreeMethodTest {
         }
     }
 
-    private final String getPluginsTemplate = "[#ftl]\n" +
+    private final String getPluginLayersTemplate = "[#ftl]\n" +
             "\n" +
             "\n" +
-            "[#assign plugins = getPlugins(\n" +
+            "[#assign plugins = getPluginLayers(\n" +
             "        {}\n" +
             "    ) ]\n" +
             "\n" +
