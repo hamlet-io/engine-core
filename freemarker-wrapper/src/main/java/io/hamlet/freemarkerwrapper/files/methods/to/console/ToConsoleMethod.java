@@ -11,22 +11,24 @@ import java.util.List;
 public class ToConsoleMethod extends ToMethod implements TemplateMethodModelEx {
 
     public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 2) {
+        if (args.size() > 2 || args.size() <1) {
             throw new TemplateModelException("Wrong arguments");
         }
 
         Object contentObj = FreemarkerUtil.ftlVarToCoreJavaObject((TemplateModel) args.get(0));
 
         meta = new ConsoleMeta();
-        TemplateHashModelEx options = (TemplateHashModelEx) args.get(1);
-        TemplateModelIterator iterator = options.keys().iterator();
         String sendTo = "stdout";
-        while (iterator.hasNext()) {
-            TemplateModel keyModel = iterator.next();
-            String key = keyModel.toString();
-            Object keyObj = options.get(key);
-            if ("SendTo".equalsIgnoreCase(key)) {
-                sendTo = FreemarkerUtil.getOptionStringValue(keyObj);
+        if(args.size() == 2) {
+            TemplateHashModelEx options = (TemplateHashModelEx) args.get(1);
+            TemplateModelIterator iterator = options.keys().iterator();
+            while (iterator.hasNext()) {
+                TemplateModel keyModel = iterator.next();
+                String key = keyModel.toString();
+                Object keyObj = options.get(key);
+                if ("SendTo".equalsIgnoreCase(key)) {
+                    sendTo = FreemarkerUtil.getOptionStringValue(keyObj);
+                }
             }
         }
         ConsoleMeta consoleMeta = (ConsoleMeta) meta;

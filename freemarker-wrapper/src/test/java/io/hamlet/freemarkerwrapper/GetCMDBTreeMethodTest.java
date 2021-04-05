@@ -361,6 +361,16 @@ public class GetCMDBTreeMethodTest {
             "    }\n" +
             "  ) ]\n" +
             "\n";
+    private final String toConsoleDefaultSendTo = "[#ftl]\n" +
+            "\n" +
+            "[#assign content = { \"var\": \"value\"} ]\n" +
+            "[#assign line = \"line2\n\" ]\n" +
+            "[#assign list = [ \"var\", \"value\"] ]\n" +
+            "[#assign candidates =\n" +
+            "  toConsole(\n" +
+            "    %s\n" +
+            "  ) ]\n" +
+            "\n";
     private final String toTemplatePrettyPrint = "[#ftl]\n" +
             "\n" +
             "[#assign content = { \"var\": \"value\"} ]\n" +
@@ -2256,6 +2266,34 @@ public class GetCMDBTreeMethodTest {
         freeMarkerTemplate.process(input, consoleWriter);
         Assert.assertTrue(FileUtils.contentEquals(file, fileExpected));
         System.setErr(ps_console);
+    }
+
+    @Test
+    public void testToConsoleDefaultSendTo() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("toConsole", new ToConsoleMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(toConsoleDefaultSendTo, "content")).getBytes());
+        String fileNameExpected = templatesPath.concat("/file.txt");
+        Files.write(Paths.get(fileNameExpected), "{var=value}".getBytes());
+        File fileExpected = new File(fileNameExpected);
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        PrintStream ps_console = System.out;
+        createFile(cmdbsPath, "out", "file.txt", "");
+        File file = new File(cmdbsPath.concat("out").concat("file.txt"));
+        FileOutputStream fos = new FileOutputStream(file);
+        PrintStream ps = new PrintStream(fos);
+        System.setOut(ps);
+
+        freeMarkerTemplate.process(input, consoleWriter);
+        Assert.assertTrue(FileUtils.contentEquals(file, fileExpected));
+        System.setOut(ps_console);
     }
 
     @Test
