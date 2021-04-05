@@ -17,8 +17,8 @@ public class JsonValueWrapper extends DefaultObjectWrapper {
 
     @Override
     protected TemplateModel handleUnknownType(final Object obj) throws TemplateModelException {
-        if(obj instanceof JsonValue){
-            switch (((JsonValue) obj).getValueType()){
+        if (obj instanceof JsonValue) {
+            switch (((JsonValue) obj).getValueType()) {
                 case FALSE:
                 case TRUE:
                     return new JsonBooleanAdapter((JsonValue) obj, this);

@@ -21,7 +21,7 @@ public class JsonBooleanAdapter extends WrappingTemplateModel implements Templat
 
     @Override
     public boolean getAsBoolean() throws TemplateModelException {
-        switch (jsonObject.getValueType()){
+        switch (jsonObject.getValueType()) {
             case TRUE:
                 return Boolean.TRUE;
             case FALSE:
