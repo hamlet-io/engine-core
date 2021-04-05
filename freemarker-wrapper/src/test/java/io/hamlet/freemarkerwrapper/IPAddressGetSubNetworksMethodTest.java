@@ -18,7 +18,7 @@ public class IPAddressGetSubNetworksMethodTest {
         Iterator<? extends IPAddress> iterator = newSubnets.prefixBlockIterator();
         while (iterator.hasNext()) {
             result = result.concat("\"".concat(iterator.next().toCanonicalString()).concat("\""));
-            if(iterator.hasNext())
+            if (iterator.hasNext())
                 result = result.concat(",");
             else
                 result = result.concat("]");

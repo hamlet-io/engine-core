@@ -3,19 +3,21 @@ package io.hamlet.freemarkerwrapper.files;
  * Sample code that finds files that match the specified glob pattern.
  * For more information on what constitutes a glob pattern, see
  * https://docs.oracle.com/javase/tutorial/essential/io/fileOps.html#glob
- *
+ * <p>
  * The file or directories that match the pattern are printed to
  * standard out.  The number of matches is also printed.
- *
+ * <p>
  * When executing this application, you must put the glob pattern
  * in quotes, so the shell will not expand any wild cards:
- *              java Find . -name "*.java"
+ * java Find . -name "*.java"
  */
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -27,8 +29,7 @@ public class FileFinder {
             extends SimpleFileVisitor<Path> {
 
         private final PathMatcher matcher;
-        private int numMatches = 0;
-        private List<Path> matches;
+        private final List<Path> matches;
         private boolean ignoreDotDirectories = true;
         private boolean ignoreDotFiles = true;
 
@@ -45,7 +46,6 @@ public class FileFinder {
         void find(Path file) {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
-                numMatches++;
 /*
                 System.out.println(file);
 */
@@ -67,7 +67,7 @@ public class FileFinder {
         @Override
         public FileVisitResult visitFile(Path file,
                                          BasicFileAttributes attrs) {
-            if(ignoreDotFiles && file.getFileName().toString().startsWith("."))
+            if (ignoreDotFiles && file.getFileName().toString().startsWith("."))
                 return CONTINUE;
             find(file);
             return CONTINUE;
@@ -78,7 +78,7 @@ public class FileFinder {
         @Override
         public FileVisitResult preVisitDirectory(Path dir,
                                                  BasicFileAttributes attrs) {
-            if(ignoreDotDirectories && dir.getFileName().toString().startsWith("."))
+            if (ignoreDotDirectories && dir.getFileName().toString().startsWith("."))
                 return SKIP_SUBTREE;
             find(dir);
             return CONTINUE;

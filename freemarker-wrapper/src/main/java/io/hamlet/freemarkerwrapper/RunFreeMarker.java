@@ -4,16 +4,16 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonValueWrapper;
-import io.hamlet.freemarkerwrapper.files.methods.cp.cmdb.CpCMDBMethod;
-import io.hamlet.freemarkerwrapper.files.methods.init.cmdb.InitCMDBsMethod;
-import io.hamlet.freemarkerwrapper.files.methods.init.plugin.InitPluginsMethod;
-import io.hamlet.freemarkerwrapper.files.methods.mkdir.cmdb.MkdirCMDBMethod;
-import io.hamlet.freemarkerwrapper.files.methods.rm.cmdb.RmCMDBMethod;
-import io.hamlet.freemarkerwrapper.files.methods.to.cmdb.ToCMDBMethod;
-import io.hamlet.freemarkerwrapper.files.methods.tree.cmdb.GetCMDBTreeMethod;
-import io.hamlet.freemarkerwrapper.files.methods.list.cmdb.GetCMDBsMethod;
-import io.hamlet.freemarkerwrapper.files.methods.tree.plugin.GetPluginTreeMethod;
-import io.hamlet.freemarkerwrapper.files.methods.list.plugin.GetPluginLayersMethod;
+import io.hamlet.freemarkerwrapper.files.methods.cp.layer.cmdb.CpCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.init.layer.cmdb.InitCMDBsMethod;
+import io.hamlet.freemarkerwrapper.files.methods.init.layer.plugin.InitPluginsMethod;
+import io.hamlet.freemarkerwrapper.files.methods.list.layer.cmdb.GetCMDBsMethod;
+import io.hamlet.freemarkerwrapper.files.methods.list.layer.plugin.GetPluginLayersMethod;
+import io.hamlet.freemarkerwrapper.files.methods.mkdir.layer.cmdb.MkdirCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.rm.layer.cmdb.RmCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.to.layer.cmdb.ToCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.tree.layer.cmdb.GetCMDBTreeMethod;
+import io.hamlet.freemarkerwrapper.files.methods.tree.layer.plugin.GetPluginTreeMethod;
 import io.hamlet.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
@@ -34,19 +34,17 @@ import java.util.jar.Manifest;
  */
 public class RunFreeMarker {
 
+    final static Options options = new Options();
+    private static final Logger log = LogManager.getLogger();
     private static String templateFileName = null;
     private static String outputFileName = null;
     private static Map<String, Object> input = null;
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
+    private static final Version freemarkerVersion = Configuration.VERSION_2_3_31;
+    private static final String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
-    final static Options options = new Options();
-
-    private static Version freemarkerVersion = Configuration.VERSION_2_3_31;
-    private static String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
-
-    private static final Logger log = LogManager.getLogger();
-    public static void main (String args[]) throws IOException, TemplateException, ParseException {
+    public static void main(String[] args) throws IOException, TemplateException, ParseException {
 
         Attributes mainAttribs = null;
         String version = "";
@@ -70,13 +68,13 @@ public class RunFreeMarker {
         directoryOption.setArgs(Option.UNLIMITED_VALUES);
         directoryOption.setValueSeparator(';');
 
-        Option versionOption = new Option("?", "version",false, "display this help.");
-        Option debugOption = new Option(null, "debug",false, "set logging level to debug.");
-        Option traceOption = new Option(null, "trace",false, "set logging level to trace.");
-        Option infoOption = new Option(null, "info",false, "set logging level to info.");
-        Option warnOption = new Option(null, "warn",false, "set logging level to warn.");
-        Option errorOption = new Option(null, "error",false, "set logging level to error.");
-        Option fatalOption = new Option(null, "fatal",false, "set logging level to fatal.");
+        Option versionOption = new Option("?", "version", false, "display this help.");
+        Option debugOption = new Option(null, "debug", false, "set logging level to debug.");
+        Option traceOption = new Option(null, "trace", false, "set logging level to trace.");
+        Option infoOption = new Option(null, "info", false, "set logging level to info.");
+        Option warnOption = new Option(null, "warn", false, "set logging level to warn.");
+        Option errorOption = new Option(null, "error", false, "set logging level to error.");
+        Option fatalOption = new Option(null, "fatal", false, "set logging level to fatal.");
 
         Option inputOption = new Option("i", true, "template file.");
 
@@ -118,21 +116,21 @@ public class RunFreeMarker {
         HelpFormatter formatter = new HelpFormatter();
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse( options, args);
+        CommandLine cmd = parser.parse(options, args);
 
         String generationLogLevel = System.getenv(GENERATION_LOG_LEVEL_VAR_NAME);
 
-        if(cmd.hasOption(traceOption.getLongOpt())){
+        if (cmd.hasOption(traceOption.getLongOpt())) {
             generationLogLevel = traceOption.getLongOpt();
-        } else if(cmd.hasOption(debugOption.getLongOpt())){
+        } else if (cmd.hasOption(debugOption.getLongOpt())) {
             generationLogLevel = debugOption.getLongOpt();
-        } else if(cmd.hasOption(infoOption.getLongOpt())){
+        } else if (cmd.hasOption(infoOption.getLongOpt())) {
             generationLogLevel = infoOption.getLongOpt();
-        } else if(cmd.hasOption(warnOption.getLongOpt())){
+        } else if (cmd.hasOption(warnOption.getLongOpt())) {
             generationLogLevel = warnOption.getLongOpt();
-        } else if(cmd.hasOption(errorOption.getLongOpt())){
+        } else if (cmd.hasOption(errorOption.getLongOpt())) {
             generationLogLevel = errorOption.getLongOpt();
-        } else if(cmd.hasOption(fatalOption.getLongOpt())){
+        } else if (cmd.hasOption(fatalOption.getLongOpt())) {
             generationLogLevel = fatalOption.getLongOpt();
         }
 
@@ -142,7 +140,7 @@ public class RunFreeMarker {
             Configurator.setLevel("io.hamlet.freemarkerwrapper.RunFreeMarker", Level.INFO);
         }
 
-        if(cmd.hasOption(versionOption.getOpt())){
+        if (cmd.hasOption(versionOption.getOpt())) {
             log.info(String.format("GSGEN v.%s\n\nFreemarker version - %s \n", version, freemarkerVersion));
             formatter.printHelp(String.format("java -jar freemarker-wrapper-%s.jar", version), options);
             return;
@@ -159,59 +157,45 @@ public class RunFreeMarker {
         List<String> lookupDirs = new ArrayList<>();
 
 
-        while (optionIterator.hasNext()){
+        while (optionIterator.hasNext()) {
             Option option = optionIterator.next();
-            String opt = StringUtils.defaultIfEmpty(option.getOpt(),"");
+            String opt = StringUtils.defaultIfEmpty(option.getOpt(), "");
             String[] values = option.getValues();
-            if(opt.equals(inputOption.getOpt())){
+            if (opt.equals(inputOption.getOpt())) {
                 templateFileName = option.getValue();
-            }
-
-            else if (opt.equals(variablesOption.getOpt())){
-                for (int i=0; i<values.length; i++){
-                    input.put(values[i], values[i+1]);
+            } else if (opt.equals(variablesOption.getOpt())) {
+                for (int i = 0; i < values.length; i++) {
+                    input.put(values[i], values[i + 1]);
                     i++;
                 }
-            }
-
-            else if (opt.equals(rawVariablesOption.getOpt())){
-                for (int i=0; i<values.length; i++){
-                    rawInput.put(values[i], values[i+1]);
+            } else if (opt.equals(rawVariablesOption.getOpt())) {
+                for (int i = 0; i < values.length; i++) {
+                    rawInput.put(values[i], values[i + 1]);
                     i++;
                 }
-            }
-
-            else if (opt.equals(outputOption.getOpt())){
+            } else if (opt.equals(outputOption.getOpt())) {
                 outputFileName = option.getValue();
-            }
-
-            else if (opt.equals(directoryOption.getOpt())) {
-                for (String directory:values){
-                    if(SystemUtils.IS_OS_WINDOWS && directory.startsWith("/") && directory.length()>2){
-                        directory = directory.substring(1,2).toUpperCase().concat(":").concat(directory.substring(2));
+            } else if (opt.equals(directoryOption.getOpt())) {
+                for (String directory : values) {
+                    if (SystemUtils.IS_OS_WINDOWS && directory.startsWith("/") && directory.length() > 2) {
+                        directory = directory.substring(1, 2).toUpperCase().concat(":").concat(directory.substring(2));
                     }
                     directories.add(directory);
                     log.debug("Directory to be added to the template loader: " + directory);
                     loaderList.add(new FileTemplateLoader(new File(directory)));
                 }
-            }
-            else if (opt.equals(cmdbPathMappingOption.getOpt()))
-            {
-                for (int i=0; i<values.length; i++){
-                    if(StringUtils.contains(values[i], "=")){
+            } else if (opt.equals(cmdbPathMappingOption.getOpt())) {
+                for (int i = 0; i < values.length; i++) {
+                    if (StringUtils.contains(values[i], "=")) {
                         String[] pair = values[i].split("=");
                         cmdbPathMappings.put(pair[0], pair[1]);
                     } else {
                         lookupDirs.add(values[i]);
                     }
                 }
-            }
-            else if (opt.equals(cmdbNamesOption.getOpt()))
-            {
+            } else if (opt.equals(cmdbNamesOption.getOpt())) {
                 CMDBNames.addAll(Arrays.asList(values));
-            }
-            else if (opt.equals(cmdbBaseNameOption.getOpt()))
-            {
+            } else if (opt.equals(cmdbBaseNameOption.getOpt())) {
                 input.put("baseCMDB", option.getValue());
             }
 
@@ -225,17 +209,14 @@ public class RunFreeMarker {
         loaderList.add(new FileTemplateLoader(new File("/")));
 
         log.debug("Templates directories in the order as they will be searched:");
-        for(FileTemplateLoader fileTemplateLoader : loaderList){
+        for (FileTemplateLoader fileTemplateLoader : loaderList) {
             log.debug(fileTemplateLoader.getBaseDirectory().getAbsolutePath());
         }
         cfg.setTemplateLoader(new MultiTemplateLoader(loaderList.toArray(new FileTemplateLoader[]{})));
 
-        if(!StringUtils.isBlank(templateFileName))
-        {
+        if (!StringUtils.isBlank(templateFileName)) {
             log.debug("Template file name - " + templateFileName);
-        }
-        else
-        {
+        } else {
             Console c = System.console();
             if (c == null) {
                 System.err.println("No console.");
@@ -246,8 +227,7 @@ public class RunFreeMarker {
             FileWriter fileWriter = new FileWriter(templateFileName);
             PrintWriter printWriter = new PrintWriter(fileWriter);
             String[] lines = StringUtils.split(template, "\\n");
-            for(int i = 0; i<lines.length; i++)
-            {
+            for (int i = 0; i < lines.length; i++) {
                 log.debug(lines[i]);
                 printWriter.println(lines[i]);
             }
@@ -255,26 +235,21 @@ public class RunFreeMarker {
             fileWriter.close();
         }
 
-        if(!StringUtils.isBlank(outputFileName))
-        {
+        if (!StringUtils.isBlank(outputFileName)) {
             log.debug("Output file name - " + outputFileName);
         }
-        for (String key:input.keySet())
-        {
+        for (String key : input.keySet()) {
             try {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(new FileInputStream(new File(input.get(key).toString())), writer, "UTF-8");
                 log.debug("JSON - " + key + ", value - " + input.get(key));
                 input.put(key, writer.toString());
-            }
-            catch (FileNotFoundException e)
-            {
+            } catch (FileNotFoundException e) {
                 log.debug("Variable - " + key + ", value - " + input.get(key));
             }
         }
 
-        for (String key:rawInput.keySet())
-        {
+        for (String key : rawInput.keySet()) {
             log.debug("Raw Variable - " + key + ", value - " + rawInput.get(key));
         }
         input.putAll(rawInput);
@@ -294,12 +269,9 @@ public class RunFreeMarker {
 
 
         Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
-        if(outputFileName!=null)
-        {
+        if (outputFileName != null) {
             freeMarkerTemplate.process(input, new FileWriter(outputFileName));
-        }
-        else
-        {
+        } else {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
             Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
@@ -309,8 +281,8 @@ public class RunFreeMarker {
         }
     }
 
-    public static Attributes readProperties() throws IOException{
-        final InputStream resourceAsStream = ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF" );
+    public static Attributes readProperties() throws IOException {
+        final InputStream resourceAsStream = ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF");
         final Manifest manifest = new Manifest(resourceAsStream);
         final Attributes mainAttribs = manifest.getMainAttributes();
         return mainAttribs;

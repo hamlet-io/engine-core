@@ -9,6 +9,12 @@ public abstract class Layer {
     protected String fileSystemPath;
     protected boolean skip;
 
+    public Layer(String name, String path, String fileSystemPath) {
+        this.name = name;
+        this.path = path;
+        this.fileSystemPath = fileSystemPath;
+    }
+
     public String getName() {
         return name;
     }
@@ -39,12 +45,6 @@ public abstract class Layer {
 
     public void setSkip(boolean skip) {
         this.skip = skip;
-    }
-
-    public Layer(String name, String path, String fileSystemPath) {
-        this.name = name;
-        this.path = path;
-        this.fileSystemPath = fileSystemPath;
     }
 
     @Override

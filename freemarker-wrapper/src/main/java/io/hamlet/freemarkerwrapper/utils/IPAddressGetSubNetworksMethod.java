@@ -1,6 +1,9 @@
 package io.hamlet.freemarkerwrapper.utils;
 
-import freemarker.template.*;
+import freemarker.template.SimpleScalar;
+import freemarker.template.TemplateMethodModelEx;
+import freemarker.template.TemplateModel;
+import freemarker.template.TemplateModelException;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
 
@@ -13,6 +16,7 @@ import java.util.List;
 public class IPAddressGetSubNetworksMethod implements TemplateMethodModelEx {
     /**
      * IPAddress function
+     *
      * @param args ipAddress and prefixLength
      * @return a json array string, ?eval needs to be called in a template
      * @throws TemplateModelException
@@ -29,7 +33,7 @@ public class IPAddressGetSubNetworksMethod implements TemplateMethodModelEx {
         Iterator<? extends IPAddress> iterator = newSubnets.prefixBlockIterator();
         while (iterator.hasNext()) {
             result = result.concat("\"".concat(iterator.next().toCanonicalString()).concat("\""));
-            if(iterator.hasNext())
+            if (iterator.hasNext())
                 result = result.concat(",");
             else
                 result = result.concat("]");

@@ -16,15 +16,15 @@
 
 package io.hamlet.freemarkerwrapper.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonBooleanAdapter;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonNumberAdapter;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonStringAdapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * FreeMarker related utilities.
@@ -58,8 +58,8 @@ public class FreemarkerUtil {
      * the type of the unwrapped object is proper according to the above list.
      *
      * @return The converted object. You may do not modify the returned
-     *     objects, as it is unpredicalbe if it has effect on the converted
-     *     <code>TemplateModel</code>-s.
+     * objects, as it is unpredicalbe if it has effect on the converted
+     * <code>TemplateModel</code>-s.
      */
     public static Object ftlVarToCoreJavaObject(TemplateModel m)
             throws TemplateModelException {
@@ -126,27 +126,27 @@ public class FreemarkerUtil {
     }
 
     public static String getOptionStringValue(Object keyObject) throws TemplateModelException {
-        if (keyObject instanceof SimpleScalar){
+        if (keyObject instanceof SimpleScalar) {
             return keyObject.toString();
-        } else if (keyObject instanceof JsonStringAdapter){
+        } else if (keyObject instanceof JsonStringAdapter) {
             return ((JsonStringAdapter) keyObject).getAsString();
         } else
             throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
     }
 
     public static boolean getOptionBooleanValue(Object keyObject) throws TemplateModelException {
-        if (keyObject instanceof TemplateBooleanModel){
+        if (keyObject instanceof TemplateBooleanModel) {
             return ((TemplateBooleanModel) keyObject).getAsBoolean();
-        } else if (keyObject instanceof JsonBooleanAdapter){
+        } else if (keyObject instanceof JsonBooleanAdapter) {
             return ((JsonBooleanAdapter) keyObject).getAsBoolean();
         } else
             throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
     }
 
     public static Number getOptionNumberValue(Object keyObject) throws TemplateModelException {
-        if (keyObject instanceof TemplateNumberModel){
+        if (keyObject instanceof TemplateNumberModel) {
             return ((TemplateNumberModel) keyObject).getAsNumber();
-        } else if (keyObject instanceof JsonNumberAdapter){
+        } else if (keyObject instanceof JsonNumberAdapter) {
             return ((JsonNumberAdapter) keyObject).getAsNumber();
         } else
             throw new TemplateModelException("unexpected class for keyObject + " + keyObject.getClass());
