@@ -11,6 +11,7 @@ import io.hamlet.freemarkerwrapper.files.methods.list.layer.cmdb.GetCMDBsMethod;
 import io.hamlet.freemarkerwrapper.files.methods.list.layer.plugin.GetPluginLayersMethod;
 import io.hamlet.freemarkerwrapper.files.methods.mkdir.layer.cmdb.MkdirCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.rm.layer.cmdb.RmCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.to.console.ToConsoleMethod;
 import io.hamlet.freemarkerwrapper.files.methods.to.layer.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.plugin.GetPluginTreeMethod;
@@ -261,6 +262,7 @@ public class RunFreeMarker {
         input.put("mkdirCMDB", new MkdirCMDBMethod());
         input.put("cpCMDB", new CpCMDBMethod());
         input.put("toCMDB", new ToCMDBMethod());
+        input.put("toConsole", new ToConsoleMethod());
         input.put("rmCMDB", new RmCMDBMethod());
         input.put("getPluginLayers", new GetPluginLayersMethod());
         input.put("getPluginTree", new GetPluginTreeMethod());
