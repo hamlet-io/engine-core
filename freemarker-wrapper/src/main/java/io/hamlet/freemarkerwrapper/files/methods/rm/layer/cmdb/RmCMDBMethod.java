@@ -12,13 +12,21 @@ import java.util.Map;
 
 public class RmCMDBMethod extends RmLayerMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 2) {
-            throw new TemplateModelException("Wrong arguments");
-        }
+    public static String METHOD_NAME = "rmCMDB";
+    public RmCMDBMethod() {
+        super(2, METHOD_NAME);
+    }
+
+    @Override
+    protected void init() {
+        meta = new CMDBMeta();
+        processor = new CMDBProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
         String path = FreemarkerUtil.getOptionStringValue(args.get(0));
 
-        meta = new CMDBMeta();
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMappings")).getWrappedObject();
@@ -50,8 +58,5 @@ public class RmCMDBMethod extends RmLayerMethod implements TemplateMethodModelEx
         cmdbMeta.setRecurse(recurse);
         cmdbMeta.setForce(force);
         cmdbMeta.setSync(sync);
-
-        layerProcessor = new CMDBProcessor();
-        return super.process();
     }
 }

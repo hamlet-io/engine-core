@@ -1,6 +1,7 @@
 package io.hamlet.freemarkerwrapper.files.processors.layer.plugin;
 
 
+import freemarker.template.TemplateModelException;
 import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
 import io.hamlet.freemarkerwrapper.files.layers.Layer;
 import io.hamlet.freemarkerwrapper.files.layers.plugin.PluginLayer;
@@ -23,8 +24,7 @@ public class PluginProcessor extends LayerProcessor {
         layerMapShareVariableName = "pluginLayerMap";
     }
 
-    @Override
-    public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
+    public void createLayerFileSystem(LayerMeta meta) throws TemplateModelException {
         PluginMeta pluginMeta = (PluginMeta) meta;
         fileSystem = new TreeMap<>();
 

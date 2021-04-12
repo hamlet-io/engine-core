@@ -4,24 +4,24 @@ import freemarker.core.Environment;
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
 import io.hamlet.freemarkerwrapper.files.meta.layer.LayerMeta;
+import io.hamlet.freemarkerwrapper.files.methods.LayerMethod;
+import io.hamlet.freemarkerwrapper.files.methods.WrapperMethod;
 import io.hamlet.freemarkerwrapper.files.processors.layer.LayerProcessor;
 import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
-import javax.json.JsonObject;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public abstract class GetLayerTreeMethod {
+public abstract class GetLayerTreeMethod extends LayerMethod {
 
-    protected LayerMeta meta;
-    protected TemplateHashModelEx options;
-    protected LayerProcessor layerProcessor;
+    public GetLayerTreeMethod(int numberOfArguments, String methodName) {
+        super(numberOfArguments, methodName);
+    }
 
+    @Override
     public void parseArguments(List args) throws TemplateModelException {
-        if (args.size() != 2) {
-            throw new TemplateModelException("Wrong arguments");
-        }
+        LayerMeta layerMeta = (LayerMeta) meta;
         String startingPath = FreemarkerUtil.getOptionStringValue(args.get(0));
 
         options = (TemplateHashModelEx) args.get(1);
@@ -67,7 +67,7 @@ public abstract class GetLayerTreeMethod {
                 minDepth = FreemarkerUtil.getOptionNumberValue(keyObj);
             } else if ("MaxDepth".equalsIgnoreCase(key)) {
                 maxDepth = FreemarkerUtil.getOptionNumberValue(keyObj);
-            } else if (meta.getIncludeInformationOptionName().equalsIgnoreCase(key)) {
+            } else if (layerMeta.getIncludeInformationOptionName().equalsIgnoreCase(key)) {
                 includeInformation = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("CaseSensitive".equalsIgnoreCase(key)) {
                 caseSensitive = FreemarkerUtil.getOptionBooleanValue(keyObj);
@@ -91,36 +91,29 @@ public abstract class GetLayerTreeMethod {
                 regexList.add(regexSequence.get(i).toString());
             }
         }
-        meta.setStartingPath(startingPath);
+        layerMeta.setStartingPath(startingPath);
 
-        meta.setRegexList(regexList);
-        meta.setIgnoreDotDirectories(ignoreDotDirectories);
-        meta.setIgnoreDotFiles(ignoreDotFiles);
-        meta.setIncludeInformation(includeInformation);
-        meta.setAddStartingWildcard(addStartingWildcard);
-        meta.setAddEndingWildcard(addEndingWildcard);
-        meta.setStopAfterFirstMatch(stopAfterFirstMatch);
-        meta.setIgnoreSubtreeAfterMatch(ignoreSubtreeAfterMatch);
+        layerMeta.setRegexList(regexList);
+        layerMeta.setIgnoreDotDirectories(ignoreDotDirectories);
+        layerMeta.setIgnoreDotFiles(ignoreDotFiles);
+        layerMeta.setIncludeInformation(includeInformation);
+        layerMeta.setAddStartingWildcard(addStartingWildcard);
+        layerMeta.setAddEndingWildcard(addEndingWildcard);
+        layerMeta.setStopAfterFirstMatch(stopAfterFirstMatch);
+        layerMeta.setIgnoreSubtreeAfterMatch(ignoreSubtreeAfterMatch);
         if (minDepth != null) {
-            meta.setMinDepth(minDepth.intValue());
+            layerMeta.setMinDepth(minDepth.intValue());
         }
         if (maxDepth != null) {
-            meta.setMaxDepth(maxDepth.intValue());
+            layerMeta.setMaxDepth(maxDepth.intValue());
         }
-        meta.setCaseSensitive(caseSensitive);
-        meta.setFilenameGlob(filenameGlob);
-        meta.setIgnoreDirectories(ignoreDirectories);
-        meta.setIgnoreFiles(ignoreFiles);
+        layerMeta.setCaseSensitive(caseSensitive);
+        layerMeta.setFilenameGlob(filenameGlob);
+        layerMeta.setIgnoreDirectories(ignoreDirectories);
+        layerMeta.setIgnoreFiles(ignoreFiles);
     }
 
-    public TemplateModel process() {
-        layerProcessor.setConfiguration(Environment.getCurrentEnvironment().getConfiguration());
-        Set<JsonObject> result = null;
-        try {
-            result = layerProcessor.getLayerTree(meta);
-        } catch (RunFreeMarkerException e) {
-            e.printStackTrace();
-        }
-        return new SimpleSequence(result, Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
+    public TemplateModel process() throws TemplateModelException, IOException, CloneNotSupportedException {
+        return new SimpleSequence(((LayerProcessor)processor).getLayerTree((LayerMeta) meta), Environment.getCurrentEnvironment().getConfiguration().getObjectWrapper());
     }
 }

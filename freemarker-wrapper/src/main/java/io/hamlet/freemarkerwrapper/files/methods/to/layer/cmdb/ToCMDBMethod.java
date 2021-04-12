@@ -12,15 +12,22 @@ import java.util.Map;
 
 public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 3) {
-            throw new TemplateModelException("Wrong arguments");
-        }
-        String path = FreemarkerUtil.getOptionStringValue(args.get(0));
+    public static String METHOD_NAME = "toCMDB";
 
-        Object contentObj = FreemarkerUtil.ftlVarToCoreJavaObject((TemplateModel) args.get(1));
+    public ToCMDBMethod() {
+        super(3, METHOD_NAME);
+    }
 
+    @Override
+    protected void init() {
         meta = new CMDBMeta();
+        processor = new CMDBProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
+        String path = FreemarkerUtil.getOptionStringValue(args.get(0));
+        Object contentObj = FreemarkerUtil.ftlVarToCoreJavaObject((TemplateModel) args.get(1));
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMappings")).getWrappedObject();
@@ -58,8 +65,5 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
         cmdbMeta.setContent(contentObj);
         cmdbMeta.setFormatting(formatting);
         cmdbMeta.setIndent(indent.intValue());
-
-        processor = new CMDBProcessor();
-        return super.process();
     }
 }

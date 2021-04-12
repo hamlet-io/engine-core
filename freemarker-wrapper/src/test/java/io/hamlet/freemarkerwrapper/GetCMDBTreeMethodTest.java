@@ -11,15 +11,18 @@ import io.hamlet.freemarkerwrapper.files.methods.list.layer.cmdb.GetCMDBsMethod;
 import io.hamlet.freemarkerwrapper.files.methods.list.layer.plugin.GetPluginLayersMethod;
 import io.hamlet.freemarkerwrapper.files.methods.mkdir.layer.cmdb.MkdirCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.rm.layer.cmdb.RmCMDBMethod;
+import io.hamlet.freemarkerwrapper.files.methods.set.status.SetExitStatusMethod;
 import io.hamlet.freemarkerwrapper.files.methods.to.console.ToConsoleMethod;
 import io.hamlet.freemarkerwrapper.files.methods.to.layer.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.plugin.GetPluginTreeMethod;
+import io.hamlet.freemarkerwrapper.files.processors.status.StatusProcessor;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.platform.commons.util.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -348,6 +351,10 @@ public class GetCMDBTreeMethodTest {
             "    }\n" +
             "  ) ]\n" +
             "\n";
+    private final String setExitStatus = "[#ftl]\n" +
+            "\n" +
+            "[#assign exit = setExitStatus(%s)]\n" +
+            "\n";
     private final String toConsole = "[#ftl]\n" +
             "\n" +
             "[#assign content = { \"var\": \"value\"} ]\n" +
@@ -530,6 +537,7 @@ public class GetCMDBTreeMethodTest {
         cfg.setLocale(Locale.UK);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         cfg.setObjectWrapper(new JsonValueWrapper(cfg.getIncompatibleImprovements()));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
     }
 
     @Before
@@ -637,13 +645,16 @@ public class GetCMDBTreeMethodTest {
         System.out.write(output.getBytes());
 
         cfg.clearSharedVariables();
+        byteArrayOutputStream.reset();
+        consoleWriter.flush();
         input.put("pluginLayers", Arrays.asList(pluginsPath.concat("/test/azure"),
                 pluginsPath.concat("/test/aws"),
                 pluginsPath.concat("/test/test")));
-        byteArrayOutputStream.reset();
-        consoleWriter.flush();
+
         freeMarkerTemplate.process(input, consoleWriter);
         output = byteArrayOutputStream.toString();
+        System.out.println("--------------------------- OUTPUT ---------------------------");
+        System.out.write(output.getBytes());
         p = Pattern.compile("Name : aws");
         m = p.matcher(output);
         count = 0;
@@ -656,8 +667,7 @@ public class GetCMDBTreeMethodTest {
         while (m.find())
             count++;
         Assert.assertEquals(1, count);
-        System.out.println("--------------------------- OUTPUT ---------------------------");
-        System.out.write(output.getBytes());
+
         input.put("pluginLayers", Arrays.asList(pluginsPath.concat("/test/test"),
                 pluginsPath.concat("/test/azure"),
                 pluginsPath.concat("/test/aws")));
@@ -1783,7 +1793,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -1818,7 +1828,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy1() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -1854,7 +1864,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy2() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -2008,7 +2018,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy3() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -2049,7 +2059,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy4() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -2090,7 +2100,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy5() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -2134,7 +2144,7 @@ public class GetCMDBTreeMethodTest {
     public void testCopy6() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("initialiseCMDBFileSystem", new InitCMDBsMethod());
-        input.put("cpCMDB", new CpCMDBMethod());
+        input.put(CpCMDBMethod.METHOD_NAME, new CpCMDBMethod());
         String fileName = templatesPath.concat("/file.ftl");
         String fileName2 = templatesPath.concat("/file2.ftl");
         String fileName3 = templatesPath.concat("/file3.ftl");
@@ -2213,15 +2223,40 @@ public class GetCMDBTreeMethodTest {
     }
 
     @Test
+    public void testSetExitStatus() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put(SetExitStatusMethod.METHOD_NAME, new SetExitStatusMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String statusCode = "120";
+        Files.write(Paths.get(fileName), (String.format(setExitStatus, statusCode)).getBytes());
+        String fileNameExpected = templatesPath.concat("/file.txt");
+        Files.write(Paths.get(fileNameExpected), "{var=value}".getBytes());
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
+        Assert.assertTrue(statusCode.contentEquals(System.getProperty(StatusProcessor.existStatusVariableName)));
+        System.clearProperty(StatusProcessor.existStatusVariableName);
+    }
+
+
+    @Test
     public void testToConsole() throws IOException, TemplateException {
         input = new HashMap<String, Object>();
         input.put("toConsole", new ToConsoleMethod());
+        input.put(SetExitStatusMethod.METHOD_NAME, new SetExitStatusMethod());
         String fileName = templatesPath.concat("/file.ftl");
         Files.write(Paths.get(fileName), (String.format(toConsole, "content", "stdout")).getBytes());
         String fileNameExpected = templatesPath.concat("/file.txt");
         Files.write(Paths.get(fileNameExpected), "{var=value}".getBytes());
         File fileExpected = new File(fileNameExpected);
         cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
         Template freeMarkerTemplate = cfg.getTemplate(fileName);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -2234,10 +2269,13 @@ public class GetCMDBTreeMethodTest {
         FileOutputStream fos = new FileOutputStream(file);
         PrintStream ps = new PrintStream(fos);
         System.setOut(ps);
-
-        freeMarkerTemplate.process(input, consoleWriter);
+            freeMarkerTemplate.process(input, consoleWriter);
         Assert.assertTrue(FileUtils.contentEquals(file, fileExpected));
         System.setOut(ps_console);
+
+        if(System.getProperty(StatusProcessor.existStatusVariableName)!=null){
+            System.exit(Integer.parseInt(System.getProperty(StatusProcessor.existStatusVariableName)));
+        }
     }
 
     @Test

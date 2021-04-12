@@ -11,8 +11,20 @@ import java.util.Map;
 
 public class GetCMDBTreeMethod extends GetLayerTreeMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
+    public static String METHOD_NAME = "getCMDBTree";
+
+    public GetCMDBTreeMethod() {
+        super(2, METHOD_NAME);
+    }
+
+    @Override
+    protected void init() {
         meta = new CMDBMeta();
+        processor = new CMDBProcessor();
+    }
+
+    @Override
+    public void parseArguments(List args) throws TemplateModelException {
         super.parseArguments(args);
 
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
@@ -29,7 +41,5 @@ public class GetCMDBTreeMethod extends GetLayerTreeMethod implements TemplateMet
         cmdbMeta.setCMDBNamesList(CMDBNames);
         cmdbMeta.setBaseCMDB(baseCMDB);
 
-        layerProcessor = new CMDBProcessor();
-        return super.process();
     }
 }

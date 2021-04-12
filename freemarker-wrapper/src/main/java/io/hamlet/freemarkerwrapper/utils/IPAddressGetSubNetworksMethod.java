@@ -14,6 +14,8 @@ import java.util.List;
  * Created by Kseniya on 10/04/2018.
  */
 public class IPAddressGetSubNetworksMethod implements TemplateMethodModelEx {
+
+    public static String METHOD_NAME = "IPAddress__getSubNetworks";
     /**
      * IPAddress function
      *

@@ -1,32 +1,25 @@
 package io.hamlet.freemarkerwrapper.files.methods.to.layer;
 
-import freemarker.core.Environment;
 import freemarker.template.SimpleNumber;
 import freemarker.template.TemplateModel;
+import freemarker.template.TemplateModelException;
 import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
-import io.hamlet.freemarkerwrapper.files.meta.layer.LayerMeta;
-import io.hamlet.freemarkerwrapper.files.methods.to.ToMethod;
+import io.hamlet.freemarkerwrapper.files.methods.LayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.layer.LayerProcessor;
 
-public abstract class ToLayerMethod extends ToMethod {
+import java.io.IOException;
 
-    public TemplateModel process() {
+public abstract class ToLayerMethod extends LayerMethod {
 
-        processor.setConfiguration(Environment.getCurrentEnvironment().getConfiguration());
-        TemplateModel result = super.process();
-        if (result instanceof SimpleNumber) {
-            if (((SimpleNumber) result).getAsNumber().intValue() == 0) {
-                LayerMeta LayerMeta = (LayerMeta) meta;
-                if (LayerMeta.isSync()) {
-                    try {
-                        ((LayerProcessor) processor).createLayerFileSystem(LayerMeta);
-                    } catch (RunFreeMarkerException e) {
-                        e.printStackTrace();
-                        return new SimpleNumber(1);
-                    }
-                }
-            }
+    public ToLayerMethod(int numberOfArguments, String methodName) {
+        super(numberOfArguments, methodName);
+    }
+
+    public TemplateModel process() throws TemplateModelException, IOException, CloneNotSupportedException {
+        int result = ((LayerProcessor) processor).toMethod(meta);
+        if (result ==  0) {
+            syncFileSystem();
         }
-        return result;
+        return new SimpleNumber(result);
     }
 }
