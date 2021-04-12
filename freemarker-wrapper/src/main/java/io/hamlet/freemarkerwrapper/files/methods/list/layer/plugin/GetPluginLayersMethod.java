@@ -12,12 +12,20 @@ import io.hamlet.freemarkerwrapper.files.processors.layer.plugin.PluginProcessor
 import java.util.List;
 
 public class GetPluginLayersMethod extends GetLayerListMethod implements TemplateMethodModelEx {
+    public static String METHOD_NAME = "getPluginLayers";
+    public GetPluginLayersMethod() {
+        super(1, METHOD_NAME);
+    }
 
-    public TemplateModel exec(List args) throws TemplateModelException {
+    @Override
+    protected void init() {
         meta = new PluginMeta();
+        processor = new PluginProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
         List<String> pluginLayers = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("pluginLayers")).getWrappedObject();
         ((PluginMeta) meta).setLayers(pluginLayers);
-        layerProcessor = new PluginProcessor();
-        return super.process();
     }
 }

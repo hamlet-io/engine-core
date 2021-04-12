@@ -13,11 +13,21 @@ import java.util.List;
 
 public class InitPluginsMethod extends InitLayersMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
+    public static String METHOD_NAME = "initialiseCMDBFileSystem";
+
+    public InitPluginsMethod(){
+        super(0, METHOD_NAME);
+    }
+
+    @Override
+    protected void init() {
         meta = new PluginMeta();
+        processor = new PluginProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
         List<String> pluginLayers = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("pluginLayers")).getWrappedObject();
         ((PluginMeta) meta).setLayers(pluginLayers);
-        layerProcessor = new PluginProcessor();
-        return super.process();
     }
 }

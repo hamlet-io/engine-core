@@ -1,6 +1,8 @@
 package io.hamlet.freemarkerwrapper;
 
-public class RunFreeMarkerException extends Exception {
+import freemarker.template.TemplateModelException;
+
+public class RunFreeMarkerException extends TemplateModelException {
     public RunFreeMarkerException(String message) {
         super(message);
     }

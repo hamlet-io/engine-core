@@ -1,23 +1,33 @@
 package io.hamlet.freemarkerwrapper.files.methods.to.console;
 
 import freemarker.template.*;
+import io.hamlet.freemarkerwrapper.ParameterValueException;
+import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
 import io.hamlet.freemarkerwrapper.files.meta.console.ConsoleMeta;
-import io.hamlet.freemarkerwrapper.files.methods.to.ToMethod;
+import io.hamlet.freemarkerwrapper.files.methods.WrapperMethod;
 import io.hamlet.freemarkerwrapper.files.processors.console.ConsoleProcessor;
 import io.hamlet.freemarkerwrapper.utils.FreemarkerUtil;
 
 import java.util.List;
 
-public class ToConsoleMethod extends ToMethod implements TemplateMethodModelEx {
+public class ToConsoleMethod extends WrapperMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() > 2 || args.size() <1) {
-            throw new TemplateModelException("Wrong arguments");
-        }
+    public static String METHOD_NAME = "toConsole";
 
+    public ToConsoleMethod() {
+        super(METHOD_NAME, 1,2);
+    }
+
+    @Override
+    protected void init() {
+        meta = new ConsoleMeta();
+        processor = new ConsoleProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
         Object contentObj = FreemarkerUtil.ftlVarToCoreJavaObject((TemplateModel) args.get(0));
 
-        meta = new ConsoleMeta();
         String sendTo = "stdout";
         if(args.size() == 2) {
             TemplateHashModelEx options = (TemplateHashModelEx) args.get(1);
@@ -34,7 +44,11 @@ public class ToConsoleMethod extends ToMethod implements TemplateMethodModelEx {
         ConsoleMeta consoleMeta = (ConsoleMeta) meta;
         consoleMeta.setSendTo(sendTo);
         consoleMeta.setContent(contentObj);
-        processor = new ConsoleProcessor();
-        return super.process();
     }
+
+    public TemplateModel process() throws ParameterValueException {
+        int result = ((ConsoleProcessor)processor).toMethod(meta);
+        return new SimpleNumber(result);
+    }
+
 }

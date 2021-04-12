@@ -2,6 +2,7 @@ package io.hamlet.freemarkerwrapper.files.methods.mkdir.layer.cmdb;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
+import io.hamlet.freemarkerwrapper.NumberOfArgumentsException;
 import io.hamlet.freemarkerwrapper.files.meta.layer.cmdb.CMDBMeta;
 import io.hamlet.freemarkerwrapper.files.methods.mkdir.layer.MkdirLayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.layer.cmdb.CMDBProcessor;
@@ -12,13 +13,21 @@ import java.util.Map;
 
 public class MkdirCMDBMethod extends MkdirLayerMethod implements TemplateMethodModelEx {
 
-    public TemplateModel exec(List args) throws TemplateModelException {
-        if (args.size() != 2) {
-            throw new TemplateModelException("Wrong arguments");
-        }
-        String startingPath = FreemarkerUtil.getOptionStringValue(args.get(0));
+    public static String METHOD_NAME = "mkdirCMDB";
 
+    public MkdirCMDBMethod() {
+        super(2, METHOD_NAME);
+    }
+
+    @Override
+    protected void init() {
         meta = new CMDBMeta();
+        processor = new CMDBProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
+        String startingPath = FreemarkerUtil.getOptionStringValue(args.get(0));
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMappings")).getWrappedObject();
@@ -45,8 +54,5 @@ public class MkdirCMDBMethod extends MkdirLayerMethod implements TemplateMethodM
         cmdbMeta.setBaseCMDB(baseCMDB);
         cmdbMeta.setParents(parents);
         cmdbMeta.setSync(sync);
-
-        layerProcessor = new CMDBProcessor();
-        return super.process();
     }
 }

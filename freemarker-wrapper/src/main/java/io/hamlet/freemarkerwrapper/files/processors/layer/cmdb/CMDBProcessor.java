@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import freemarker.template.TemplateModelException;
+import io.hamlet.freemarkerwrapper.ParameterValueException;
 import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
 import io.hamlet.freemarkerwrapper.files.FileFinder;
 import io.hamlet.freemarkerwrapper.files.layers.Layer;
@@ -18,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.*;
@@ -26,12 +27,15 @@ import java.util.*;
 
 public class CMDBProcessor extends LayerProcessor {
 
+    public static String FILE_SYSTEM_CMDB = "cmdbFileSystem";
+    public static String LAYER_MAP_CMDB = "cmdbLayerMap";
+
     public CMDBProcessor() {
-        fileSystemShareVariableName = "cmdbFileSystem";
-        layerMapShareVariableName = "cmdbLayerMap";
+        fileSystemShareVariableName = FILE_SYSTEM_CMDB;
+        layerMapShareVariableName = LAYER_MAP_CMDB;
     }
 
-    public void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException {
+    public void createLayerFileSystem(LayerMeta meta) throws TemplateModelException, IOException {
         CMDBMeta cmdbMeta = (CMDBMeta) meta;
         Set<String> cmdbNames = new LinkedHashSet<>();
 
@@ -64,13 +68,9 @@ public class CMDBProcessor extends LayerProcessor {
                         throw new RunFreeMarkerException(
                                 String.format("Unable to read path \"%s\" for CMDB lookup", lookupDir));
                     }
-                    FileFinder.Finder cmdbFilefinder = new FileFinder.Finder(".cmdb", true, false);
-                    try {
-                        Files.walkFileTree(Paths.get(lookupDir), cmdbFilefinder);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    for (Path cmdbFile : cmdbFilefinder.done()) {
+                    FileFinder.Finder cmdbFileFinder = new FileFinder.Finder(".cmdb", true, false);
+                    Files.walkFileTree(Paths.get(lookupDir), cmdbFileFinder);
+                    for (Path cmdbFile : cmdbFileFinder.done()) {
                         String cmdbName = cmdbFile.getParent().getFileName().toString();
                         String cmdbPath = cmdbFile.getParent().toString();
                         String CMDBPrefix = cmdbMeta.isUseCMDBPrefix() ? cmdbFile.getParent().getParent().getFileName().toString().concat("_") : "";
@@ -93,23 +93,13 @@ public class CMDBProcessor extends LayerProcessor {
 
         for (String cmdbName : cmdbMeta.getCMDBs().keySet()) {
             CMDBLayer cmdbLayer = (CMDBLayer) layerMap.get(cmdbName);
-            Path CMDBPath = null;
-            try {
-                CMDBPath = readJSONFileUsingDirectoryStream(cmdbMeta.getCMDBs().get(cmdbName), ".cmdb");
-            } catch (IOException e) {
-                throw new RunFreeMarkerException(e.getMessage());
-            }
+            Path CMDBPath = readJSONFileUsingDirectoryStream(cmdbMeta.getCMDBs().get(cmdbName), ".cmdb");
             JsonObject jsonObject = null;
             /**
              * if cmdb file exist - read layers from it
              */
             if (CMDBPath != null) {
-                JsonReader jsonReader = null;
-                try {
-                    jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
-                } catch (FileNotFoundException e) {
-                    throw new RunFreeMarkerException(e.getMessage());
-                }
+                JsonReader jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
                 jsonObject = jsonReader.readObject();
             }
 
@@ -165,7 +155,6 @@ public class CMDBProcessor extends LayerProcessor {
         /**
          * when -b option is not specified, the default base CMDB is tenant
          * doesn't expect CMDBPrefixes to be used
-         * TODO: add a catch code
          */
         if (StringUtils.isNotEmpty(cmdbMeta.getBaseCMDB()) && !cmdbMeta.getCMDBs().containsKey(cmdbMeta.getBaseCMDB())) {
             throw new RunFreeMarkerException(String.format("Base CMDB \"%s\" is missing from the detected CMDBs \"%s\"",
@@ -235,7 +224,7 @@ public class CMDBProcessor extends LayerProcessor {
         return jsonArrayBuilder;
     }
 
-    public int rmLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+    public int rmLayers(LayerMeta meta) throws TemplateModelException, IOException {
         super.rmLayers(meta);
         CMDBMeta cmdbMeta = (CMDBMeta) meta;
         Path sourceDirectory = getExistingDirectory(cmdbMeta.getLayersNames(), cmdbMeta.getToPath());
@@ -271,7 +260,7 @@ public class CMDBProcessor extends LayerProcessor {
     }
 
     @Override
-    public int toMethod(Meta meta) throws RunFreeMarkerException, IOException {
+    public int toMethod(Meta meta) throws TemplateModelException, IOException, CloneNotSupportedException {
         super.toMethod(meta);
         CMDBMeta cmdbMeta = (CMDBMeta) meta;
         Object content = cmdbMeta.getContent();
@@ -289,9 +278,8 @@ public class CMDBProcessor extends LayerProcessor {
             } else {
                 if (StringUtils.equalsIgnoreCase("compressed", cmdbMeta.getFormatting())) {
                     result = objectMapper.writer().writeValueAsBytes(content);
-                } else throw new RunFreeMarkerException(
-                        String.format("Unexpected formatting value - \"%s\". Allowed values - pretty or compressed (default)", cmdbMeta.getFormatting()));
-
+                } else
+                    throw new ParameterValueException("Formatting", cmdbMeta.getFormatting(), "pretty, compressed", "compressed");
             }
         } else if ("yml".equalsIgnoreCase(cmdbMeta.getFormat()) || "yaml".equalsIgnoreCase(cmdbMeta.getFormat())) {
             ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
@@ -309,7 +297,7 @@ public class CMDBProcessor extends LayerProcessor {
         return 0;
     }
 
-    public int cpLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+    public int cpLayers(Meta meta) throws TemplateModelException, IOException, CloneNotSupportedException {
         super.cpLayers(meta);
         CMDBMeta cmdbMeta = (CMDBMeta) meta;
 
@@ -368,7 +356,7 @@ public class CMDBProcessor extends LayerProcessor {
         return 1;
     }
 
-    public int mkdirLayers(LayerMeta meta) throws RunFreeMarkerException {
+    public int mkdirLayers(LayerMeta meta) throws TemplateModelException, IOException {
         super.mkdirLayers(meta);
         CMDBMeta cmdbMeta = (CMDBMeta) meta;
         Path pathToCreate = Paths.get(cmdbMeta.getStartingPath());
@@ -442,61 +430,57 @@ public class CMDBProcessor extends LayerProcessor {
      * @param useCMDBPrefix
      * @return
      */
-    private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix, final Set<String> CMDBNames, boolean baseProcessing) {
+    private Map<String, String> buildCMDBFileSystem(final String baseCMDB, final Map<String, String> CMDBs, boolean useCMDBPrefix, final Set<String> CMDBNames, boolean baseProcessing) throws IOException{
         Map<String, String> cmdbFileSystem = new TreeMap<>();
-        try {
-            Path CMDBPath = null;
-            if (StringUtils.isNotEmpty(baseCMDB)) {
-                CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
-            }
-            JsonObject jsonObject = null;
-            /**
-             * if cmdb file exist - read layers from it
-             */
-            if (CMDBPath != null) {
-                JsonReader jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
-                jsonObject = jsonReader.readObject();
-            }
+        Path CMDBPath = null;
+        if (StringUtils.isNotEmpty(baseCMDB)) {
+            CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+        }
+        JsonObject jsonObject = null;
+        /**
+         * if cmdb file exist - read layers from it
+         */
+        if (CMDBPath != null) {
+            JsonReader jsonReader = Json.createReader(new FileReader(CMDBPath.toFile()));
+            jsonObject = jsonReader.readObject();
+        }
 
-            JsonArray layers = Json.createArrayBuilder().build();
-            if (jsonObject != null && jsonObject.containsKey("Layers")) {
-                layers = jsonObject.getJsonArray("Layers").asJsonArray();
-            }
+        JsonArray layers = Json.createArrayBuilder().build();
+        if (jsonObject != null && jsonObject.containsKey("Layers")) {
+            layers = jsonObject.getJsonArray("Layers").asJsonArray();
+        }
 
-            /**
-             * if there are no layers defined in a base cmdb, add all detected cmdb as layers with a default base path
-             */
-            if (layers.isEmpty() && baseProcessing) {
-                JsonArrayBuilder layersBuilder = Json.createArrayBuilder();
-                for (String name : CMDBs.keySet()) {
-                    if (name.equalsIgnoreCase(baseCMDB))
-                        continue;
-                    if (!CMDBNames.isEmpty() && !CMDBNames.contains(name))
-                        continue;
-                    JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-                    objectBuilder.
-                            add("Name", name).
-                            add("BasePath", "/default/".concat(name));
-                    layersBuilder.add(objectBuilder.build());
-                }
-                layers = layersBuilder.build();
-            }
-
-            for (int i = 0; i < layers.size(); i++) {
-                JsonObject layer = layers.getJsonObject(i);
-                String layerName = layer.getString("Name");
-                //if -c option was applied, check if a CMDB layer should be included into the CMDB file system
-                if (!CMDBNames.isEmpty() && !CMDBNames.contains(layerName))
+        /**
+         * if there are no layers defined in a base cmdb, add all detected cmdb as layers with a default base path
+         */
+        if (layers.isEmpty() && baseProcessing) {
+            JsonArrayBuilder layersBuilder = Json.createArrayBuilder();
+            for (String name : CMDBs.keySet()) {
+                if (name.equalsIgnoreCase(baseCMDB))
                     continue;
-                String basePath = layer.getString("BasePath");
-                String CMDBPrefix = useCMDBPrefix ? CMDBPath.getParent().getParent().getFileName().toString().concat("_") : "";
-                cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
-                if (!baseCMDB.equalsIgnoreCase(layerName)) {
-                    cmdbFileSystem.putAll(buildCMDBFileSystem(layerName, CMDBs, useCMDBPrefix, CMDBNames, false));
-                }
+                if (!CMDBNames.isEmpty() && !CMDBNames.contains(name))
+                    continue;
+                JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+                objectBuilder.
+                        add("Name", name).
+                        add("BasePath", "/default/".concat(name));
+                layersBuilder.add(objectBuilder.build());
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            layers = layersBuilder.build();
+        }
+
+        for (int i = 0; i < layers.size(); i++) {
+            JsonObject layer = layers.getJsonObject(i);
+            String layerName = layer.getString("Name");
+            //if -c option was applied, check if a CMDB layer should be included into the CMDB file system
+            if (!CMDBNames.isEmpty() && !CMDBNames.contains(layerName))
+                continue;
+            String basePath = layer.getString("BasePath");
+            String CMDBPrefix = useCMDBPrefix ? CMDBPath.getParent().getParent().getFileName().toString().concat("_") : "";
+            cmdbFileSystem.put(CMDBPrefix.concat(layerName), basePath);
+            if (!baseCMDB.equalsIgnoreCase(layerName)) {
+                cmdbFileSystem.putAll(buildCMDBFileSystem(layerName, CMDBs, useCMDBPrefix, CMDBNames, false));
+            }
         }
         return cmdbFileSystem;
     }
@@ -517,7 +501,7 @@ public class CMDBProcessor extends LayerProcessor {
         return result;
     }
 
-    protected Path getDestinationPath(CMDBMeta sourceMeta, String sourceType) throws RunFreeMarkerException {
+    protected Path getDestinationPath(CMDBMeta sourceMeta, String sourceType) throws TemplateModelException, IOException, CloneNotSupportedException {
         if ("directory".equalsIgnoreCase(sourceType)) {
             //destination can be an existing or a new directory
             //check if destination directory exists
@@ -525,15 +509,11 @@ public class CMDBProcessor extends LayerProcessor {
             destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
             //if destination directory doesn't exist, create it
             if (destinationDirectory == null) {
-                try {
-                    CMDBMeta destinationMeta = (CMDBMeta) sourceMeta.clone();
-                    destinationMeta.setStartingPath(sourceMeta.getToPath());
-                    destinationMeta.setParents(Boolean.FALSE);
-                    mkdirLayers(destinationMeta);
-                    destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
-                }
+                CMDBMeta destinationMeta = (CMDBMeta) sourceMeta.clone();
+                destinationMeta.setStartingPath(sourceMeta.getToPath());
+                destinationMeta.setParents(Boolean.FALSE);
+                mkdirLayers(destinationMeta);
+                destinationDirectory = getExistingDirectory(sourceMeta.getLayersNames(), sourceMeta.getToPath());
             }
             return destinationDirectory;
         }

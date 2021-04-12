@@ -3,6 +3,7 @@ package io.hamlet.freemarkerwrapper.files.processors.layer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import freemarker.core.Environment;
 import freemarker.template.DefaultMapAdapter;
 import freemarker.template.TemplateModelException;
 import io.hamlet.freemarkerwrapper.RunFreeMarkerException;
@@ -19,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -33,7 +35,7 @@ public abstract class LayerProcessor extends Processor {
     protected String layerMapShareVariableName;
     private final Map<String, List<Path>> filesPerLayer = new LinkedHashMap<>();
 
-    public abstract void createLayerFileSystem(LayerMeta meta) throws RunFreeMarkerException;
+    public abstract void createLayerFileSystem(LayerMeta meta) throws TemplateModelException, IOException;
 
     public abstract void postProcessMeta(LayerMeta meta);
 
@@ -42,34 +44,29 @@ public abstract class LayerProcessor extends Processor {
     public abstract JsonArrayBuilder buildLayers(LayerMeta meta);
 
 
-    protected void setSharedVariables() {
-        try {
-            configuration.setSharedVariable(fileSystemShareVariableName, fileSystem);
-            configuration.setSharedVariable(layerMapShareVariableName, layerMap);
-        } catch (TemplateModelException e) {
-            e.printStackTrace();
-        }
+    protected void setSharedVariables() throws TemplateModelException{
+        Environment.getCurrentEnvironment().getConfiguration().setSharedVariable(fileSystemShareVariableName, fileSystem);
+        Environment.getCurrentEnvironment().getConfiguration().setSharedVariable(layerMapShareVariableName, layerMap);
     }
 
-    public JsonArray getLayers(LayerMeta meta) throws RunFreeMarkerException {
-        checkFileSystem(meta);
-        postProcessMeta(meta);
+    public JsonArray getLayers(LayerMeta meta) throws TemplateModelException, IOException {
+        checkFileSystemAndPostProcessMeta(meta);
         return buildLayers(meta).build();
     }
 
-    public void initLayers(LayerMeta meta) throws RunFreeMarkerException {
+    public void initLayers(LayerMeta meta) throws TemplateModelException, IOException {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
         createLayerFileSystem(meta);
     }
 
-    public int mkdirLayers(LayerMeta meta) throws RunFreeMarkerException {
+    public int mkdirLayers(LayerMeta meta) throws TemplateModelException, IOException {
         return checkFileSystemAndPostProcessMeta(meta);
     }
 
 
-    private int checkFileSystemAndPostProcessMeta(LayerMeta meta) throws RunFreeMarkerException {
+    private int checkFileSystemAndPostProcessMeta(LayerMeta meta) throws TemplateModelException, IOException {
         if (meta.getStartingPath() != null && !meta.getStartingPath().startsWith("/")) {
             meta.setStartingPath("/".concat(meta.getStartingPath()));
         }
@@ -78,17 +75,16 @@ public abstract class LayerProcessor extends Processor {
         return 0;
     }
 
-    public int rmLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
+    public int rmLayers(LayerMeta meta) throws TemplateModelException, IOException {
         return checkFileSystemAndPostProcessMeta(meta);
     }
 
-    @Override
-    public int toMethod(Meta meta) throws RunFreeMarkerException, IOException {
+    public int toMethod(Meta meta) throws TemplateModelException, IOException, CloneNotSupportedException {
         return checkFileSystemAndPostProcessMeta((LayerMeta) meta);
     }
 
-    public int cpLayers(LayerMeta meta) throws RunFreeMarkerException, IOException {
-        return checkFileSystemAndPostProcessMeta(meta);
+    public int cpLayers(Meta meta) throws TemplateModelException, IOException, CloneNotSupportedException {
+        return checkFileSystemAndPostProcessMeta((LayerMeta)meta);
     }
 
     protected void copy(Path source, Path destination, CopyOption copyOption) throws IOException {
@@ -99,7 +95,7 @@ public abstract class LayerProcessor extends Processor {
         }
     }
 
-    public Set<JsonObject> getLayerTree(LayerMeta meta) throws RunFreeMarkerException {
+    public Set<JsonObject> getLayerTree(LayerMeta meta) throws TemplateModelException, IOException, CloneNotSupportedException {
         checkFileSystemAndPostProcessMeta(meta);
 
         Set<JsonObject> output = new LinkedHashSet<>();
@@ -222,7 +218,7 @@ public abstract class LayerProcessor extends Processor {
                 jsonObjectBuilder.add("IsDirectory", Boolean.FALSE);
                 String contents = null;
                 try (FileInputStream inputStream = new FileInputStream(file.toString())) {
-                    contents = IOUtils.toString(inputStream);
+                    contents = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -279,7 +275,7 @@ public abstract class LayerProcessor extends Processor {
                         }
                     }
                 } catch (UncheckedIOException e) {
-                    //
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -505,13 +501,13 @@ public abstract class LayerProcessor extends Processor {
         return null;
     }
 
-    protected void checkFileSystem(LayerMeta meta) throws RunFreeMarkerException {
-        if (configuration.getSharedVariableNames().contains(fileSystemShareVariableName)) {
-            fileSystem = (TreeMap) ((DefaultMapAdapter) configuration.getSharedVariable(fileSystemShareVariableName)).getWrappedObject();
+    protected void checkFileSystem(LayerMeta meta) throws TemplateModelException, IOException {
+        if (Environment.getCurrentEnvironment().getConfiguration().getSharedVariableNames().contains(fileSystemShareVariableName)) {
+            fileSystem = (TreeMap) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getConfiguration().getSharedVariable(fileSystemShareVariableName)).getWrappedObject();
         }
 
-        if (configuration.getSharedVariableNames().contains(layerMapShareVariableName)) {
-            layerMap = (LinkedHashMap) ((DefaultMapAdapter) configuration.getSharedVariable(layerMapShareVariableName)).getWrappedObject();
+        if (Environment.getCurrentEnvironment().getConfiguration().getSharedVariableNames().contains(layerMapShareVariableName)) {
+            layerMap = (LinkedHashMap) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getConfiguration().getSharedVariable(layerMapShareVariableName)).getWrappedObject();
         }
         if (fileSystem == null) {
             createLayerFileSystem(meta);

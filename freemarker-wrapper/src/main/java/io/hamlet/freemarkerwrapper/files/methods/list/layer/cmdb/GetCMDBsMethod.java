@@ -11,9 +11,19 @@ import java.util.List;
 import java.util.Map;
 
 public class GetCMDBsMethod extends GetLayerListMethod implements TemplateMethodModelEx {
+    public static String METHOD_NAME = "getCMDBs";
+    public GetCMDBsMethod() {
+        super(1, METHOD_NAME);
+    }
 
-    public TemplateModel exec(List args) throws TemplateModelException {
+    @Override
+    protected void init() {
         meta = new CMDBMeta();
+        processor = new CMDBProcessor();
+    }
+
+    @Override
+    protected void parseArguments(List args) throws TemplateModelException {
         List<String> lookupDirs = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("lookupDirs")).getWrappedObject();
         List<String> CMDBNames = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("CMDBNames")).getWrappedObject();
         Map<String, String> cmdbPathMapping = (Map<String, String>) ((DefaultMapAdapter) Environment.getCurrentEnvironment().getGlobalVariable("cmdbPathMappings")).getWrappedObject();
@@ -39,8 +49,5 @@ public class GetCMDBsMethod extends GetLayerListMethod implements TemplateMethod
         cmdbMeta.setBaseCMDB(baseCMDB);
         cmdbMeta.setUseCMDBPrefix(useCMDBPrefix);
         cmdbMeta.setActiveOnly(activeOnly);
-
-        layerProcessor = new CMDBProcessor();
-        return super.process();
     }
 }

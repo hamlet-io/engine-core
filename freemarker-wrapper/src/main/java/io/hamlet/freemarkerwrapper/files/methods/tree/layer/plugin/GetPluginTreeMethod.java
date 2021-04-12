@@ -13,15 +13,22 @@ import java.util.List;
 
 public class GetPluginTreeMethod extends GetLayerTreeMethod implements TemplateMethodModelEx {
 
+    public static String METHOD_NAME = "getPluginTree";
 
-    public TemplateModel exec(List args) throws TemplateModelException {
+    public GetPluginTreeMethod() {
+        super(2, METHOD_NAME);
+    }
+
+    @Override
+    protected void init() {
         meta = new PluginMeta();
-        super.parseArguments(args);
+        processor = new PluginProcessor();
+    }
 
+    @Override
+    public void parseArguments(List args) throws TemplateModelException {
+        super.parseArguments(args);
         List<String> pluginLayers = (List<String>) ((DefaultListAdapter) Environment.getCurrentEnvironment().getGlobalVariable("pluginLayers")).getWrappedObject();
         ((PluginMeta) meta).setLayers(pluginLayers);
-
-        layerProcessor = new PluginProcessor();
-        return super.process();
     }
 }
