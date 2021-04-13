@@ -47,6 +47,8 @@ public class ToCMDBMethod extends ToLayerMethod implements TemplateMethodModelEx
                 append = FreemarkerUtil.getOptionBooleanValue(keyObj);
             } else if ("Synch".equalsIgnoreCase(key)) {
                 sync = FreemarkerUtil.getOptionBooleanValue(keyObj);
+            } else if ("Format".equalsIgnoreCase(key)) {
+                format = FreemarkerUtil.getOptionStringValue(keyObj);
             } else if ("Formatting".equalsIgnoreCase(key)) {
                 formatting = FreemarkerUtil.getOptionStringValue(keyObj);
             } else if ("Indent".equalsIgnoreCase(key)) {
