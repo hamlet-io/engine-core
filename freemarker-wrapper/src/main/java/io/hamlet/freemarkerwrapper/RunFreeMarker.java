@@ -237,10 +237,14 @@ public class RunFreeMarker {
                 log.debug("Output file name - " + outputFileName);
             }
             for (String key : input.keySet()) {
-                StringWriter writer = new StringWriter();
-                IOUtils.copy(new FileInputStream(input.get(key).toString()), writer, "UTF-8");
-                log.debug("JSON - " + key + ", value - " + input.get(key));
-                input.put(key, writer.toString());
+                try {
+                    StringWriter writer = new StringWriter();
+                    IOUtils.copy(new FileInputStream(input.get(key).toString()), writer, "UTF-8");
+                    log.debug("JSON - " + key + ", value - " + input.get(key));
+                    input.put(key, writer.toString());
+                } catch (FileNotFoundException e) {
+                    log.debug("Variable - " + key + ", value - " + input.get(key));
+                }
             }
 
             for (String key : rawInput.keySet()) {
