@@ -13,7 +13,7 @@ import java.util.List;
 
 public class InitPluginsMethod extends InitLayersMethod implements TemplateMethodModelEx {
 
-    public static String METHOD_NAME = "initialiseCMDBFileSystem";
+    public static String METHOD_NAME = "initialisePluginFileSystem";
 
     public InitPluginsMethod(){
         super(0, METHOD_NAME);
