@@ -6,7 +6,7 @@
 
     <artifactId>freemarker-wrapper</artifactId>
     <groupId>io.hamlet</groupId>
-    <version>1.13.0-rc4</version>
+    <version>1.13.0</version>
     <build>
         <plugins>
             <plugin>
