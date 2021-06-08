@@ -2,6 +2,7 @@ package io.hamlet.freemarkerwrapper;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.core.Environment;
+import freemarker.core.StopException;
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonValueWrapper;
 import io.hamlet.freemarkerwrapper.files.methods.cp.layer.cmdb.CpCMDBMethod;
@@ -22,7 +23,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.platform.commons.util.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -355,6 +355,12 @@ public class GetCMDBTreeMethodTest {
             "\n" +
             "[#assign exit = setExitStatus(%s)]\n" +
             "\n";
+
+    private final String stopException = "[#ftl]\n" +
+            "\n" +
+            "[#stop \"stop exception\"/]\n" +
+            "\n";
+
     private final String toConsole = "[#ftl]\n" +
             "\n" +
             "[#assign content = { \"var\": \"value\"} ]\n" +
@@ -2166,6 +2172,8 @@ public class GetCMDBTreeMethodTest {
         input.put("CMDBNames", Arrays.asList("accounts", "api", "almv2"));
         input.put("baseCMDB", "accounts");
         cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        cfg.setLogTemplateExceptions(false);
         Template freeMarkerTemplate = cfg.getTemplate(fileName);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -2244,6 +2252,36 @@ public class GetCMDBTreeMethodTest {
         System.clearProperty(StatusProcessor.existStatusVariableName);
     }
 
+    @Test
+    public void testStopException() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put(SetExitStatusMethod.METHOD_NAME, new SetExitStatusMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        String statusCode = "100";
+        Files.write(Paths.get(fileName), (String.format(stopException, statusCode)).getBytes());
+        String fileNameExpected = templatesPath.concat("/file.txt");
+        Files.write(Paths.get(fileNameExpected), "{var=value}".getBytes());
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        cfg.setLogTemplateExceptions(false);
+
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        try {
+            freeMarkerTemplate.process(input, consoleWriter);
+        } catch (TemplateException ex) {
+            if (ex instanceof StopException){
+                String msg = ex.getMessage();
+                System.err.print("Encountered stop instruction");
+                if (msg != null && !msg.equals("")) {
+                    System.err.println("\nCause given: " + msg);
+                } else System.err.println();
+            }
+        }
+    }
 
     @Test
     public void testToConsole() throws IOException, TemplateException {
@@ -2257,6 +2295,7 @@ public class GetCMDBTreeMethodTest {
         File fileExpected = new File(fileNameExpected);
         cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
         cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        cfg.setLogTemplateExceptions(false);
         Template freeMarkerTemplate = cfg.getTemplate(fileName);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 

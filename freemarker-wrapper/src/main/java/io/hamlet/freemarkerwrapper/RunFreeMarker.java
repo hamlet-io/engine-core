@@ -2,6 +2,7 @@ package io.hamlet.freemarkerwrapper;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
+import freemarker.core.Environment;
 import freemarker.core.StopException;
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonValueWrapper;
@@ -56,9 +57,9 @@ public class RunFreeMarker {
             cfg = new Configuration(freemarkerVersion);
             cfg.setDefaultEncoding("UTF-8");
             cfg.setLocale(Locale.UK);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
             cfg.setObjectWrapper(new JsonValueWrapper(cfg.getIncompatibleImprovements()));
             cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+            cfg.setLogTemplateExceptions(false);
             input = new HashMap<String, Object>();
             rawInput = new HashMap<String, Object>();
 
@@ -280,6 +281,11 @@ public class RunFreeMarker {
                 System.out.write(byteArrayOutputStream.toByteArray());
             }
         } catch (StopException e){
+            String msg = e.getMessage();
+            System.err.print("Encountered stop instruction");
+            if (msg != null && !msg.equals("")) {
+                System.err.println("\nCause given: " + msg);
+            } else System.err.println();
             System.exit(WrapperTemplateExceptionHandler.STOP_EXCEPTION_EXIT_CODE);
         } catch (ParseException e) {
             e.printStackTrace(System.err);
