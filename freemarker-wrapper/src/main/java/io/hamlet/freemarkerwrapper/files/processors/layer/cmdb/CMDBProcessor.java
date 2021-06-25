@@ -305,7 +305,7 @@ public class CMDBProcessor extends LayerProcessor {
 
         Path destinationFile = getDestinationPath(cmdbMeta, "singleFile");
         if (cmdbMeta.isAppend()) {
-            Files.write(destinationFile, result, StandardOpenOption.APPEND);
+            Files.write(destinationFile, result, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
         } else {
             Files.write(destinationFile, result);
         }
