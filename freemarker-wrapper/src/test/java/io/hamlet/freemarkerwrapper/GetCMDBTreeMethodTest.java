@@ -1676,7 +1676,7 @@ public class GetCMDBTreeMethodTest {
         Files.write(Paths.get(fileName), (getCMDBsTemplateFileActiveOnly).getBytes());
         String content = getCMDBsAccountsTemplate;
 
-        createFile(cmdbsPath, "accounts", ".cmdb", content);
+        createFile(cmdbsPath, "accounts/.cmdb", "config.json", content);
         createFile(cmdbsPath, "api", ".cmdb", "{}");
         createFile(cmdbsPath, "almv2", ".cmdb", "{}");
 

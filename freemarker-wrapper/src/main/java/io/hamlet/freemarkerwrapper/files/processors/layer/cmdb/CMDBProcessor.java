@@ -68,6 +68,16 @@ public class CMDBProcessor extends LayerProcessor {
                         throw new RunFreeMarkerException(
                                 String.format("Unable to read path \"%s\" for CMDB lookup", lookupDir));
                     }
+                    FileFinder.Finder cmdbConfigFileFinder = new FileFinder.Finder("config.json", false, true);
+                    Files.walkFileTree(Paths.get(lookupDir), cmdbConfigFileFinder);
+                    for (Path cmdbFile : cmdbConfigFileFinder.done()) {
+                        if(cmdbFile.getParent().getFileName().toString().equalsIgnoreCase(".cmdb")) {
+                            String cmdbName = cmdbFile.getParent().getParent().getFileName().toString();
+                            String cmdbPath = cmdbFile.getParent().getParent().toString();
+                            String CMDBPrefix = cmdbMeta.isUseCMDBPrefix() ? cmdbFile.getParent().getParent().getParent().getFileName().toString().concat("_") : "";
+                            cmdbMeta.getCMDBs().put(CMDBPrefix.concat(cmdbName), cmdbPath);
+                        }
+                    }
                     FileFinder.Finder cmdbFileFinder = new FileFinder.Finder(".cmdb", true, false);
                     Files.walkFileTree(Paths.get(lookupDir), cmdbFileFinder);
                     for (Path cmdbFile : cmdbFileFinder.done()) {
@@ -76,6 +86,7 @@ public class CMDBProcessor extends LayerProcessor {
                         String CMDBPrefix = cmdbMeta.isUseCMDBPrefix() ? cmdbFile.getParent().getParent().getFileName().toString().concat("_") : "";
                         cmdbMeta.getCMDBs().put(CMDBPrefix.concat(cmdbName), cmdbPath);
                     }
+
                 }
             }
         }
@@ -93,7 +104,10 @@ public class CMDBProcessor extends LayerProcessor {
 
         for (String cmdbName : cmdbMeta.getCMDBs().keySet()) {
             CMDBLayer cmdbLayer = (CMDBLayer) layerMap.get(cmdbName);
-            Path CMDBPath = readJSONFileUsingDirectoryStream(cmdbMeta.getCMDBs().get(cmdbName), ".cmdb");
+            Path CMDBPath = readJSONFileUsingDirectoryStream(cmdbMeta.getCMDBs().get(cmdbName).concat("/.cmdb"), "config.json");
+            if (CMDBPath == null) {
+                CMDBPath = readJSONFileUsingDirectoryStream(cmdbMeta.getCMDBs().get(cmdbName), ".cmdb");
+            }
             JsonObject jsonObject = null;
             /**
              * if cmdb file exist - read layers from it
@@ -435,7 +449,10 @@ public class CMDBProcessor extends LayerProcessor {
         Map<String, String> cmdbFileSystem = new TreeMap<>();
         Path CMDBPath = null;
         if (StringUtils.isNotEmpty(baseCMDB)) {
-            CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+            CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB).concat("/.cmdb"), "config.json");
+            if (CMDBPath == null) {
+                CMDBPath = readJSONFileUsingDirectoryStream(CMDBs.get(baseCMDB), ".cmdb");
+            }
         }
         JsonObject jsonObject = null;
         /**
