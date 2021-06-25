@@ -240,6 +240,7 @@ public class CMDBProcessor extends LayerProcessor {
                 } else return 1;
             }
         } else {
+            cmdbMeta.setMaxDepth(1);
             String sourceStartingPath = StringUtils.substringBeforeLast(cmdbMeta.getToPath(), "/");
             String sourceFilenameGlob = StringUtils.substringAfterLast(cmdbMeta.getToPath(), "/");
             cmdbMeta.setStartingPath(sourceStartingPath);
