@@ -290,17 +290,20 @@ public abstract class LayerProcessor extends Processor {
     }
 
     protected Path readJSONFileUsingDirectoryStream(String dir, String fileName) throws IOException {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dir))) {
-            for (Path path : stream) {
-                if (!Files.isDirectory(path)) {
-                    if (fileName.equals(path.getFileName().toString())) {
-                        return path;
+        if (Files.isDirectory(Paths.get(dir))) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dir))) {
+                for (Path path : stream) {
+                    if (!Files.isDirectory(path)) {
+                        if (fileName.equals(path.getFileName().toString())) {
+                            return path;
+                        }
                     }
                 }
+            } catch (NullPointerException e) {
+                System.err.println(String.format("Cannot find path %s", dir));
             }
-        } catch (NullPointerException e) {
-            System.err.println(String.format("Cannot find path %s", dir));
         }
+
         return null;
     }
 
