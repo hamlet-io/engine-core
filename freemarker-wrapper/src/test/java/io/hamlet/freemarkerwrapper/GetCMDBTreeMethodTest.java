@@ -2593,7 +2593,7 @@ public class GetCMDBTreeMethodTest {
         createFile(cmdbsPath, "api", ".cmdb", "{}");
         createFile(cmdbsPath, "almv2", ".cmdb", "{}");
         createFile(cmdbsPath, "accounts/products", "test.json", "{}");
-        createFile(cmdbsPath, "accounts/products/almv2-copy", "temp.json", "{}");
+        createFile(cmdbsPath, "accounts/products/almv2-copy", "not-temp.json", "{}");
         createFile(cmdbsPath, "api", "test.json", "{}");
         createFile(cmdbsPath, "almv2/dir", "test.json", "{}");
         createFile(cmdbsPath, "almv2/dir", "test-1.json", "{}");
