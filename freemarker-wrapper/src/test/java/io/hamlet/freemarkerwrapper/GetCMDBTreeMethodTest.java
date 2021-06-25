@@ -27,10 +27,7 @@ import org.junit.Test;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -323,6 +320,40 @@ public class GetCMDBTreeMethodTest {
             "    }\n" +
             "  ) ]\n" +
             "\n";
+    private final String cpRmTemplate = "[#ftl]\n" +
+            "[#include \"/base.ftl\"]\n" +
+            "[\n" +
+            "[#assign copy =\n" +
+            "    cpCMDB(\n" +
+            "        \"/default/cic/state/cf/integration/default/seg-cert-pmenp01-ap-southeast-2-epilogue-pseduo-stack.json\",\n" +
+            "        \"/default/cic/state/cf/integration/default/cert/default/seg-cert-pmenp01-ap-southeast-2-epilogue-pseduo-stack.json\",\n" +
+            "        {\n" +
+            "            \"Recurse\" : false,\n" +
+            "            \"Preserve\" : true\n" +
+            "        }\n" +
+            "    )\n" +
+            "]\n" +
+            "[@toJSON\n" +
+            "    {\n" +
+            "        \"Copy\" : copy\n" +
+            "    }\n" +
+            "/]\n" +
+            "[#assign delete =\n" +
+            "    rmCMDB(\n" +
+            "        \"/default/cic/state/cf/integration/default/seg-cert-pmenp01-ap-southeast-2-epilogue-pseduo-stack.json\",\n" +
+            "        {\n" +
+            "            \"Recurse\" : false,\n" +
+            "            \"Force\" : false\n" +
+            "        }\n" +
+            "    )\n" +
+            "]\n" +
+            ",[@toJSON\n" +
+            "    {\n" +
+            "        \"Delete\" : delete\n" +
+            "    }\n" +
+            "/]\n" +
+            "]";
+
     private final String rmTemplate = "[#ftl]\n" +
             "\n" +
             "[#assign candidates =\n" +
@@ -1958,6 +1989,7 @@ public class GetCMDBTreeMethodTest {
         createFile(cmdbsPath, "accounts/products/almv2-copy", "temp.json", "{}");
         createFile(cmdbsPath, "api", "test.json", "{}");
         createFile(cmdbsPath, "almv2/dir", "test.json", "{}");
+        createFile(cmdbsPath, "almv2/dir/cic/default", "test.json", "{}");
         createFile(cmdbsPath, "almv2/dir", "test-1.json", "{}");
         createFile(cmdbsPath, "almv2/dir", "test-2.json", "{}");
         createFile(cmdbsPath, "api/another-dir", "test.json", "{}");
