@@ -32,7 +32,12 @@ jobs:
       - name: run tests and package
         working-directory: freemarker-wrapper/
         run: |
-          mvn -B test --file pom.xml
+          mvn -B package --file pom.xml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: engine-wrapper
+          path: freemarker-wrapper/target/freemarker-wrapper-*.jar
 
       - name: Test Results
         uses: mikepenz/action-junit-report@v2
