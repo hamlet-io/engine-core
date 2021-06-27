@@ -1,0 +1,46 @@
+name: testing
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - java_version: '8'
+          - java_version: '11'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Java Setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: ${{ matrix.java_version }}
+
+      - name: run tests and package
+        working-directory: freemarker-wrapper/
+        run: |
+          mvn -B test --file pom.xml
+
+      - name: upload artefact
+        uses: actions/upload-artifact@v2
+        with:
+          name: freemarker-wrapper.jar
+          path: freemarker-wrapper/target/freemarker-wrapper*.jar
+
+
+      - name: Test Results
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: 'freemarker-wrapper/target/surefire-reports/*.xml'
+          fail_on_failure: true
+          require_tests: true
+          check_name: test results ${{ matrix.java_version }}
