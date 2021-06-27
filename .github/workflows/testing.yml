@@ -34,13 +34,6 @@ jobs:
         run: |
           mvn -B test --file pom.xml
 
-      - name: upload artefact
-        uses: actions/upload-artifact@v2
-        with:
-          name: freemarker-wrapper.jar
-          path: freemarker-wrapper/target/freemarker-wrapper*.jar
-
-
       - name: Test Results
         uses: mikepenz/action-junit-report@v2
         with:
