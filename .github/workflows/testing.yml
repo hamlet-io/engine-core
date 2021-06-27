@@ -40,4 +40,4 @@ jobs:
           report_paths: 'freemarker-wrapper/target/surefire-reports/*.xml'
           fail_on_failure: true
           require_tests: true
-          check_name: test results ${{ matrix.java_version }}
+          check_name: 'test results - java version: ${{ matrix.java_version }}'
