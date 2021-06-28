@@ -23,6 +23,8 @@ jobs:
 
     steps:
 
+      - uses: actions/checkout@v2
+
       - name: Java Setup
         uses: actions/setup-java@v2
         with:
@@ -118,5 +120,5 @@ jobs:
           tags: "ghcr.io/${{github.repository}}:${{ steps.get_tag_name.outputs.TAG_NAME }}"
           push: ${{ startsWith(steps.get_tag_name.outputs.PUSH_IMAGE, 'true') }}
           target: base_package
-          build-args:
-            - wrapper_file_name: ${{steps.wrapper_download.outputs.download-path}}
+          build-args: |
+            wrapper_file_name=${{steps.wrapper_download.outputs.download-path}}
