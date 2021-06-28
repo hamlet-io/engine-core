@@ -36,7 +36,19 @@ jobs:
         run: |
           mvn -B package --file pom.xml
 
-      - uses: actions/upload-artifact@v2
+      - name: add build details
+        run: |
+          pip install --pre hamlet-cli
+          hamlet engine add-engine-source-build
+
+      - name: upload build details
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-details
+          path: .hamlet/engine_source.json
+
+      - name: upload wrapper
+        uses: actions/upload-artifact@v2
         with:
           name: engine-wrapper
           path: freemarker-wrapper/target/freemarker-wrapper-*.jar
@@ -49,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Artefacts
+      - name: Get wrapper
         uses: actions/download-artifact@v2
         with:
           name: engine-wrapper
@@ -70,8 +82,7 @@ jobs:
 
     steps:
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v1
@@ -83,17 +94,17 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: add build details
-        run: |
-          pip install --pre hamlet-cli
-          hamlet engine add-engine-source-build
-
-      - name: Download Artefacts
-        id: wrapper_download
+      - name: get wrapper
         uses: actions/download-artifact@v2
         with:
           name: engine-wrapper
           path: ./
+
+      - name: get build details
+        uses: actions/download-artifact@v2
+        with:
+          name: build-details
+          path: ./.hamlet/
 
       - id: get_tag_name
         name: image tag prefix
@@ -113,6 +124,12 @@ jobs:
           echo ::set-output name=TAG_NAME::test
           echo ::set-output name=PUSH_IMAGE::false
 
+      - id: find_wrapper_file
+        name: find_wrapper_file
+        run: |
+          echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
+
+
       - name: build and push container
         uses: docker/build-push-action@v2
         with:
@@ -121,4 +138,4 @@ jobs:
           push: ${{ startsWith(steps.get_tag_name.outputs.PUSH_IMAGE, 'true') }}
           target: base_package
           build-args: |
-            wrapper_file_name=${{steps.wrapper_download.outputs.download-path}}
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
