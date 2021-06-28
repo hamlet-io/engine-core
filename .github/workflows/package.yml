@@ -36,10 +36,22 @@ jobs:
         run: |
           mvn -B package --file pom.xml
 
-      - uses: actions/upload-artifact@v2
+      - name: add build details
+        run: |
+          pip install --pre hamlet-cli
+          hamlet engine add-engine-source-build
+
+      - name: upload build details
+        uses: actions/upload-artifact@v2
         with:
           name: engine-wrapper
-          path: freemarker-wrapper/target/freemarker-wrapper-*.jar
+          path: .hamlet/*
+
+      - uses: actions/upload-artifact@v2
+        working-directory: freemarker-wrapper/target/
+        with:
+          name: engine-wrapper
+          path: freemarker-wrapper-*.jar
 
 
   release_tag:
@@ -83,11 +95,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: add build details
-        run: |
-          pip install --pre hamlet-cli
-          hamlet engine add-engine-source-build
-
       - name: Download Artefacts
         id: wrapper_download
         uses: actions/download-artifact@v2
@@ -113,6 +120,12 @@ jobs:
           echo ::set-output name=TAG_NAME::test
           echo ::set-output name=PUSH_IMAGE::false
 
+      - id: find_wrapper_file
+        name: find_wrapper_file
+        run: |
+          echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
+
+
       - name: build and push container
         uses: docker/build-push-action@v2
         with:
@@ -121,4 +134,4 @@ jobs:
           push: ${{ startsWith(steps.get_tag_name.outputs.PUSH_IMAGE, 'true') }}
           target: base_package
           build-args: |
-            wrapper_file_name=${{steps.wrapper_download.outputs.download-path}}
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
