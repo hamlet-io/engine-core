@@ -119,4 +119,4 @@ jobs:
           push: ${{ startsWith(steps.get_tag_name.outputs.PUSH_IMAGE, 'true') }}
           target: base_package
           build-args:
-            - wrapper_file_name: ${{steps.wrapper_download.outputs.download-path}}
+            wrapper_file_name: ${{steps.wrapper_download.outputs.download-path}}
