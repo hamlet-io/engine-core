@@ -114,10 +114,10 @@ jobs:
         with:
           images: ghcr.io/${{github.repository}}
           flavor: |
-            latest=${{ github.ref == 'refs/heads/master' }}
+            latest=auto
           tags: |
             type=semver,pattern={{version}}
-            type=sha
+            type=edge,branch=master
 
       - id: find_wrapper_file
         name: find_wrapper_file
