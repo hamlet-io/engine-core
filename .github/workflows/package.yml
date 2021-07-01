@@ -38,7 +38,7 @@ jobs:
 
       - name: add build details
         run: |
-          pip install --pre hamlet-cli
+          pip install hamlet-cli
           hamlet engine add-engine-source-build
 
       - name: upload build details
@@ -106,36 +106,28 @@ jobs:
           name: build-details
           path: ./.hamlet/
 
-      - id: get_tag_name
-        name: image tag prefix
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo ::set-output name=TAG_NAME::latest
-            echo ::set-output name=PUSH_IMAGE::true
-            exit 0
-          fi
-
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            echo ::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}
-            echo ::set-output name=PUSH_IMAGE::true
-            exit 0
-          fi
-
-          echo ::set-output name=TAG_NAME::test
-          echo ::set-output name=PUSH_IMAGE::false
+      - name: docker meta details
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=${{ github.ref == 'refs/heads/master' }}
+          tags: |
+            type=semver,pattern={{version}}
 
       - id: find_wrapper_file
         name: find_wrapper_file
         run: |
           echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
 
-
       - name: build and push container
         uses: docker/build-push-action@v2
         with:
           context: .
-          tags: "ghcr.io/${{github.repository}}:${{ steps.get_tag_name.outputs.TAG_NAME }}"
-          push: ${{ startsWith(steps.get_tag_name.outputs.PUSH_IMAGE, 'true') }}
+          push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           target: base_package
           build-args: |
             wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
