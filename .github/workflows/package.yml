@@ -118,6 +118,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=edge,branch=master
+            type=sha
 
       - id: find_wrapper_file
         name: find_wrapper_file
