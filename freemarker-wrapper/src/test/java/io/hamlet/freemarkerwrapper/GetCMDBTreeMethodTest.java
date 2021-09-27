@@ -17,6 +17,7 @@ import io.hamlet.freemarkerwrapper.files.methods.to.console.ToConsoleMethod;
 import io.hamlet.freemarkerwrapper.files.methods.to.layer.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.plugin.GetPluginTreeMethod;
+import io.hamlet.freemarkerwrapper.files.methods.validate.json.ValidateJsonMethod;
 import io.hamlet.freemarkerwrapper.files.processors.status.StatusProcessor;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -405,6 +406,19 @@ public class GetCMDBTreeMethodTest {
             "    }\n" +
             "  ) ]\n" +
             "\n";
+
+    private final String validateJson = "[#ftl]\n" +
+            "\n" +
+            "[#assign document = \"true\" ]\n" +
+            "[#assign schema = { \"$schema\": \"http://json-schema.org/draft-07/schema#\", \"type\": \"integer\" } ]\n" +
+            "[#assign result =\n" +
+            "  validateJson(\n" +
+            "    %s,\n" +
+            "    %s\n" +
+            "  ) ]\n" +
+            "${result.Status}\n" +
+            "\n";
+
     private final String toConsoleDefaultSendTo = "[#ftl]\n" +
             "\n" +
             "[#assign content = { \"var\": \"value\"} ]\n" +
@@ -2313,6 +2327,24 @@ public class GetCMDBTreeMethodTest {
                 } else System.err.println();
             }
         }
+    }
+
+    @Test
+    public void testValidateJson() throws IOException, TemplateException {
+        input = new HashMap<String, Object>();
+        input.put("validateJson", new ValidateJsonMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (String.format(validateJson, "document", "schema")).getBytes());
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        cfg.setLogTemplateExceptions(false);
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        freeMarkerTemplate.process(input, consoleWriter);
     }
 
     @Test

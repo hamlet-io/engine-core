@@ -18,6 +18,7 @@ import io.hamlet.freemarkerwrapper.files.methods.to.console.ToConsoleMethod;
 import io.hamlet.freemarkerwrapper.files.methods.to.layer.cmdb.ToCMDBMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.cmdb.GetCMDBTreeMethod;
 import io.hamlet.freemarkerwrapper.files.methods.tree.layer.plugin.GetPluginTreeMethod;
+import io.hamlet.freemarkerwrapper.files.methods.validate.json.ValidateJsonMethod;
 import io.hamlet.freemarkerwrapper.files.processors.status.StatusProcessor;
 import io.hamlet.freemarkerwrapper.utils.IPAddressGetSubNetworksMethod;
 import org.apache.commons.cli.*;
@@ -267,6 +268,7 @@ public class RunFreeMarker {
             input.put(GetPluginTreeMethod.METHOD_NAME, new GetPluginTreeMethod());
             input.put(InitCMDBsMethod.METHOD_NAME, new InitCMDBsMethod());
             input.put(InitPluginsMethod.METHOD_NAME, new InitPluginsMethod());
+            input.put(ValidateJsonMethod.METHOD_NAME, new ValidateJsonMethod());
 
 
             Template freeMarkerTemplate = cfg.getTemplate(templateFileName);
