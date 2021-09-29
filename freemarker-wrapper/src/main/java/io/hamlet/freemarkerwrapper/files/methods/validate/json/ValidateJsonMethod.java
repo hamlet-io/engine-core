@@ -35,11 +35,11 @@ public class ValidateJsonMethod extends WrapperMethod implements TemplateMethodM
         JsonMeta jsonMeta = (JsonMeta) meta;
         Object documentObject = args.get(0);
         Object schemaObject = args.get(1);
-        if(documentObject instanceof SimpleScalar){
-            jsonMeta.setDocument(((SimpleScalar)documentObject).getAsString());
+        if(documentObject instanceof TemplateModel){
+            jsonMeta.setDocument(documentObject.toString());
         }
         if(schemaObject instanceof TemplateModel){
-            jsonMeta.setSchema((schemaObject).toString());
+            jsonMeta.setSchema(schemaObject.toString());
         }
     }
 }

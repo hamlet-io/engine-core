@@ -1,7 +1,5 @@
 package io.hamlet.freemarkerwrapper.files.processors.validate;
 
-import freemarker.template.TemplateModel;
-import io.hamlet.freemarkerwrapper.ParameterValueException;
 import net.jimblackler.jsonschemafriend.SchemaException;
 import io.hamlet.freemarkerwrapper.files.meta.Meta;
 import io.hamlet.freemarkerwrapper.files.meta.validate.JsonMeta;
@@ -10,13 +8,12 @@ import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.Validator;
 
-import javax.json.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ValidateProcessor extends Processor {
 
-    public Map toMethod(Meta meta) throws ParameterValueException {
+    public Map toMethod(Meta meta) {
         JsonMeta jsonMeta = (JsonMeta) meta;
         String document = jsonMeta.getDocument();
         String schemaString = jsonMeta.getSchema();
