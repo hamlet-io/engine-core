@@ -40,7 +40,7 @@ jobs:
 
       - name: add build details
         run: |
-          pip install hamlet-cli
+          pip install hamlet
           hamlet engine add-engine-source-build
 
       - name: upload build details
