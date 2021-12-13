@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (2021-07-01)
+## Unreleased (2021-12-13)
 
 #### New Features
 
@@ -21,6 +21,7 @@
 * (cicd): setup github actions
 #### Fixes
 
+* tag syntax for actions
 * default tags
 * tag naming
 * default tag for docker package
@@ -63,6 +64,10 @@
 * (ci): quality of life updates
 #### Others
 
+* (deps): bump log4j-core in /freemarker-wrapper ([#78](https://github.com/hamlet-io/engine-core/issues/78))
+* (deps): bump log4j-api from 2.13.3 to 2.15.0 in /freemarker-wrapper ([#77](https://github.com/hamlet-io/engine-core/issues/77))
+* use new package name for hamlet install
+* changelog bump ([#65](https://github.com/hamlet-io/engine-core/issues/65))
 * remove prebuilt jar versions
 * update version
 * (deps): bump commons-io from 2.6 to 2.7 in /freemarker-wrapper
