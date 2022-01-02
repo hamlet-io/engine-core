@@ -38,11 +38,3 @@ jobs:
         with:
           name: "engine-wrapper_java-${{ matrix.java_version }}"
           path: freemarker-wrapper/target/freemarker-wrapper-*.jar
-
-      - name: Test Results
-        uses: mikepenz/action-junit-report@v2
-        with:
-          report_paths: 'freemarker-wrapper/target/surefire-reports/*.xml'
-          fail_on_failure: true
-          require_tests: true
-          check_name: 'test results - java version: ${{ matrix.java_version }}'
