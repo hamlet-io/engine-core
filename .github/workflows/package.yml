@@ -25,18 +25,14 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: Java Setup
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '11'
-
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
       - name: package
         working-directory: freemarker-wrapper/
-        run: |
-          mvn -B package --file pom.xml
+        run: ./gradlew runtime
 
       - name: add build details
         run: |
@@ -53,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: engine-wrapper
-          path: freemarker-wrapper/target/freemarker-wrapper-*.jar
+          path: freemarker-wrapper/build/image/
 
 
   release_tag:
