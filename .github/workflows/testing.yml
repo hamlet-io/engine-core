@@ -22,21 +22,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Java Setup
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: ${{ matrix.java_version }}
-
-      - name: run tests and package
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Test with Gradle
         working-directory: freemarker-wrapper/
-        run: |
-          mvn -B package --file pom.xml
+        run: ./gradlew test runtime
 
       - uses: actions/upload-artifact@v2
         with:
           name: "engine-wrapper_java-${{ matrix.java_version }}"
-          path: freemarker-wrapper/target/freemarker-wrapper-*.jar
+          path: freemarker-wrapper/build/image
 
       - name: Test Results
         uses: mikepenz/action-junit-report@v2
