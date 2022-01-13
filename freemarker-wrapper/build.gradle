@@ -69,7 +69,9 @@ runtime {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'io.hamlet.freemarkerwrapper.RunFreeMarker'
+        attributes (
+            'Main-Class': 'io.hamlet.freemarkerwrapper.RunFreeMarker',
+            'Multi-Release': true)
     }
 }
 
