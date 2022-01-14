@@ -40,6 +40,15 @@ test {
 group = 'io.hamlet'
 version = '2.0.0'
 description = 'freemarker-wrapper'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
 
 runtime {
     options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
