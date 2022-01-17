@@ -40,7 +40,6 @@ test {
 group = 'io.hamlet'
 version = '2.0.0'
 description = 'freemarker-wrapper'
-java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 publishing {
     publications {
@@ -51,28 +50,41 @@ publishing {
 }
 
 runtime {
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    options = [
+        '--strip-debug',
+        '--compress', '2',
+        '--no-header-files',
+        '--no-man-pages'
+    ]
 
-    modules = ['java.desktop', 'java.rmi', 'java.sql', 'java.logging', 'java.xml', 'java.naming', 'java.compiler', 'java.scripting', 'java.management']
+    modules = [
+        'java.desktop',
+        'java.rmi',
+        'java.sql',
+        'java.logging',
+        'java.xml',
+        'java.naming',
+        'java.compiler',
+        'java.scripting',
+        'java.management'
+    ]
 
-    targetPlatform("win") {
-        jdkHome = jdkDownload("https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_windows_hotspot_11.0.13_8.zip")
+    targetPlatform("Windows") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_windows_hotspot_11.0.13_8.zip"
+        )
     }
 
-    targetPlatform("lin") {
-        jdkHome = jdkDownload("https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_linux_hotspot_11.0.13_8.tar.gz") {
-            archiveExtension = "tar.gz"
-            pathToHome = "jdk-11.0.13+8"
-            overwrite = true
-        }
+    targetPlatform("Linux") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_linux_hotspot_11.0.13_8.tar.gz"
+        )
     }
 
-    targetPlatform("mac") {
-        jdkHome = jdkDownload("https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_mac_hotspot_11.0.13_8.tar.gz") {
-            archiveExtension = "tar.gz"
-            pathToHome = "jdk-11.0.13+8/Contents/Home"
-            overwrite = true
-        }
+    targetPlatform("Darwin") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_mac_hotspot_11.0.13_8.tar.gz"
+        )
     }
 }
 
@@ -80,7 +92,8 @@ jar {
     manifest {
         attributes (
             'Main-Class': 'io.hamlet.freemarkerwrapper.RunFreeMarker',
-            'Multi-Release': true)
+            'Multi-Release': true
+        )
     }
 }
 
