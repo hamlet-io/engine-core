@@ -5,7 +5,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id "org.beryx.runtime" version "1.3.0"
+    id 'org.beryx.runtime' version '1.12.7'
 }
 
 repositories {
@@ -16,24 +16,24 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.freemarker:freemarker:2.3.31'
     implementation 'com.github.seancfoley:ipaddress:5.3.3'
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'commons-cli:commons-cli:1.5.0'
     implementation 'javax.json:javax.json-api:1.1.4'
     implementation 'org.glassfish:javax.json:1.1.4'
-    implementation 'commons-io:commons-io:2.9.0'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.5.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.13.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.13.3'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+
     testImplementation 'junit:junit:4.13.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0-M1'
 }
 
 test {
     useJUnit()
-
     maxHeapSize = '1G'
 }
 
@@ -41,13 +41,59 @@ group = 'io.hamlet'
 version = '2.0.0'
 description = 'freemarker-wrapper'
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
 runtime {
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    options = [
+        '--strip-debug',
+        '--compress', '2',
+        '--no-header-files',
+        '--no-man-pages'
+    ]
+
+    modules = [
+        'java.desktop',
+        'java.rmi',
+        'java.sql',
+        'java.logging',
+        'java.xml',
+        'java.naming',
+        'java.compiler',
+        'java.scripting',
+        'java.management'
+    ]
+
+    targetPlatform("Windows") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_windows_hotspot_11.0.13_8.zip"
+        )
+    }
+
+    targetPlatform("Linux") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_linux_hotspot_11.0.13_8.tar.gz"
+        )
+    }
+
+    targetPlatform("Darwin") {
+        jdkHome = jdkDownload(
+            "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jdk_x64_mac_hotspot_11.0.13_8.tar.gz"
+        )
+    }
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'io.hamlet.freemarkerwrapper.RunFreeMarker'
+        attributes (
+            'Main-Class': 'io.hamlet.freemarkerwrapper.RunFreeMarker',
+            'Multi-Release': true
+        )
     }
 }
 
