@@ -79,11 +79,9 @@ public class RunFreeMarker {
 
             Option variablesOption = new Option("v", true, "variables for freemarker template.");
             variablesOption.setArgs(Option.UNLIMITED_VALUES);
-            variablesOption.setValueSeparator('=');
 
             Option rawVariablesOption = new Option("r", true, "raw variables for freemarker template.");
             rawVariablesOption.setArgs(Option.UNLIMITED_VALUES);
-            rawVariablesOption.setValueSeparator('=');
 
             Option outputOption = new Option("o", true, "output file.");
 
@@ -163,14 +161,12 @@ public class RunFreeMarker {
                 if (opt.equals(inputOption.getOpt())) {
                     templateFileName = option.getValue();
                 } else if (opt.equals(variablesOption.getOpt())) {
-                    for (int i = 0; i < values.length; i++) {
-                        input.put(values[i], values[i + 1]);
-                        i++;
+                    for ( String variable: values) {
+                        input.put(variable.split("=", 2)[0], variable.split("=", 2)[1]);
                     }
                 } else if (opt.equals(rawVariablesOption.getOpt())) {
-                    for (int i = 0; i < values.length; i++) {
-                        rawInput.put(values[i], values[i + 1]);
-                        i++;
+                    for ( String rawVariable: values) {
+                        rawInput.put(rawVariable.split("=", 2)[0], rawVariable.split("=", 2)[1]);
                     }
                 } else if (opt.equals(outputOption.getOpt())) {
                     outputFileName = option.getValue();
@@ -310,4 +306,3 @@ public class RunFreeMarker {
     }
 
 }
-
