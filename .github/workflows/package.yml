@@ -30,6 +30,7 @@ jobs:
 
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
+
       - name: package
         working-directory: freemarker-wrapper/
         run: ./gradlew runtime
@@ -45,10 +46,16 @@ jobs:
           name: build-details
           path: .hamlet/engine_source.json
 
-      - name: upload wrapper
+      - name: upload jar
         uses: actions/upload-artifact@v2
         with:
-          name: engine-wrapper
+          name: jar-file
+          path: freemarker-wrapper/build/libs/freemarker-wrapper-*.jar
+
+      - name: upload bundles
+        uses: actions/upload-artifact@v2
+        with:
+          name: engine-bundle
           path: freemarker-wrapper/build/image/
 
 
@@ -92,11 +99,17 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: get wrapper
+      - name: get jar
         uses: actions/download-artifact@v2
         with:
-          name: engine-wrapper
+          name: jar-file
           path: ./
+
+      - name: get bundle
+        uses: actions/download-artifact@v2
+        with:
+          name: engine-bundle
+          path: ./image/
 
       - name: get build details
         uses: actions/download-artifact@v2
