@@ -30,8 +30,13 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: "engine-wrapper_java-${{ matrix.java_version }}"
+          name: "engine-wrapper_bundles"
           path: freemarker-wrapper/build/image
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "engine-wrapper_java-${{ matrix.java_version }}"
+          path: freemarker-wrapper/build/libs
 
       - name: Test Results
         uses: mikepenz/action-junit-report@v2
