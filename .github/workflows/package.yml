@@ -103,22 +103,27 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: jar-file
-          path: ./
+          path: freemarker-wrapper/build/libs/
 
       - name: get bundle
         uses: actions/download-artifact@v2
         with:
           name: engine-bundle
-          path: ./image/
+          path: freemarker-wrapper/build/image/
 
       - name: get build details
         uses: actions/download-artifact@v2
         with:
           name: build-details
-          path: ./.hamlet/
+          path: .hamlet/
 
-      - name: docker meta details
-        id: meta
+      - id: find_wrapper_file
+        name: find_wrapper_file
+        run: |
+          echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
+
+      - name: base meta
+        id: base_meta
         uses: docker/metadata-action@v3
         with:
           images: ghcr.io/${{github.repository}}
@@ -129,18 +134,109 @@ jobs:
             type=edge,branch=master
             type=sha
 
-      - id: find_wrapper_file
-        name: find_wrapper_file
-        run: |
-          echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
-
-      - name: build and push container
+      - name: base push
         uses: docker/build-push-action@v2
         with:
           context: .
           push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.base_meta.outputs.tags }}
+          labels: ${{ steps.base_meta.outputs.labels }}
           target: base_package
+          build-args: |
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
+
+      - name: jar meta
+        id: jar_meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=auto
+            suffix=jar,onlatest=true
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge,branch=master
+            type=sha
+
+      - name: jar push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.jar_meta.outputs.tags }}
+          labels: ${{ steps.jar_meta.outputs.labels }}
+          target: jar
+          build-args: |
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
+
+      - name: Darwin meta
+        id: Darwin_meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=auto
+            suffix=Darwin,onlatest=true
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge,branch=master
+            type=sha
+
+      - name: Darwin push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.Darwin_meta.outputs.tags }}
+          labels: ${{ steps.Darwin_meta.outputs.labels }}
+          target: Darwin
+          build-args: |
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
+
+      - name: Linux meta
+        id: Linux_meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=auto
+            suffix=Linux,onlatest=true
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge,branch=master
+            type=sha
+
+      - name: Linux push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.Linux_meta.outputs.tags }}
+          labels: ${{ steps.Linux_meta.outputs.labels }}
+          target: Linux
+          build-args: |
+            wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
+
+      - name: Windows meta
+        id: Windows_meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=auto
+            suffix=Linux,onlatest=true
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge,branch=master
+            type=sha
+
+      - name: Windows push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.Windows_meta.outputs.tags }}
+          labels: ${{ steps.Windows_meta.outputs.labels }}
+          target: Windows
           build-args: |
             wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
