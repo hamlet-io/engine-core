@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+"
   pull_request:
 
 jobs:
@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - java_version: '8'
           - java_version: '11'
 
     steps:
@@ -23,18 +22,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Java Setup
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: ${{ matrix.java_version }}
-
-      - name: run tests and package
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Test with Gradle
         working-directory: freemarker-wrapper/
-        run: |
-          mvn -B package --file pom.xml
+        run: ./gradlew test runtime
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "engine-wrapper_bundles"
+          path: freemarker-wrapper/build/image
 
       - uses: actions/upload-artifact@v2
         with:
           name: "engine-wrapper_java-${{ matrix.java_version }}"
-          path: freemarker-wrapper/target/freemarker-wrapper-*.jar
+          path: freemarker-wrapper/build/libs
+
+      - name: Test Results
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: 'freemarker-wrapper/build/test-results/test/*.xml'
+          fail_on_failure: true
+          require_tests: true
+          check_name: 'test results - java version: ${{ matrix.java_version }}'
