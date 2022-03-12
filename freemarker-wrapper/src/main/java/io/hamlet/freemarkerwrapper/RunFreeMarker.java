@@ -162,11 +162,17 @@ public class RunFreeMarker {
                     templateFileName = option.getValue();
                 } else if (opt.equals(variablesOption.getOpt())) {
                     for ( String variable: values) {
-                        input.put(variable.split("=", 2)[0], variable.split("=", 2)[1]);
+                        input.put(
+                            variable.split("=", 2)[0],
+                            variable.split("=", 2).length == 2 ? variable.split("=", 2)[1] : ""
+                        );
                     }
                 } else if (opt.equals(rawVariablesOption.getOpt())) {
                     for ( String rawVariable: values) {
-                        rawInput.put(rawVariable.split("=", 2)[0], rawVariable.split("=", 2)[1]);
+                        rawInput.put(
+                            rawVariable.split("=", 2)[0],
+                            rawVariable.split("=", 2).length == 2 ? rawVariable.split("=", 2)[1] : ""
+                        );
                     }
                 } else if (opt.equals(outputOption.getOpt())) {
                     outputFileName = option.getValue();
