@@ -63,6 +63,10 @@ jobs:
           name: wrapper_artifact
           path: ./
 
+      - name: extract artifact
+        run: |
+          tar -zxvf wrapper.tar.gz
+
       - name: Create Releases
         uses: ncipollo/release-action@v1.8.6
         with:
@@ -90,11 +94,15 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: get jar
+      - name: get artifact
         uses: actions/download-artifact@v2
         with:
           name: wrapper_artifact
           path: ./
+
+      - name: extract artifact
+        run: |
+          tar -zxvf wrapper.tar.gz
 
       - id: find_wrapper_file
         name: find_wrapper_file
