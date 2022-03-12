@@ -152,7 +152,7 @@ jobs:
           images: ghcr.io/${{github.repository}}
           flavor: |
             latest=auto
-            suffix=jar,onlatest=true
+            suffix=-jar,onlatest=true
           tags: |
             type=semver,pattern={{version}}
             type=edge,branch=master
@@ -176,7 +176,7 @@ jobs:
           images: ghcr.io/${{github.repository}}
           flavor: |
             latest=auto
-            suffix=Darwin,onlatest=true
+            suffix=-Darwin,onlatest=true
           tags: |
             type=semver,pattern={{version}}
             type=edge,branch=master
@@ -200,7 +200,7 @@ jobs:
           images: ghcr.io/${{github.repository}}
           flavor: |
             latest=auto
-            suffix=Linux,onlatest=true
+            suffix=-Linux,onlatest=true
           tags: |
             type=semver,pattern={{version}}
             type=edge,branch=master
@@ -224,7 +224,7 @@ jobs:
           images: ghcr.io/${{github.repository}}
           flavor: |
             latest=auto
-            suffix=Windows,onlatest=true
+            suffix=-Windows,onlatest=true
           tags: |
             type=semver,pattern={{version}}
             type=edge,branch=master
