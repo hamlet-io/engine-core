@@ -107,7 +107,7 @@ jobs:
       - id: find_wrapper_file
         name: find_wrapper_file
         run: |
-          echo ::set-output NAME=WRAPPER_FILE_NAME::$(basename $(find freemarker-wrapper/build/libs/ -type file -name freemarker-wrapper-*.jar))
+          echo ::set-output NAME=WRAPPER_FILE_NAME::$(basename $(find freemarker-wrapper/build/libs/ -type f -name "freemarker-wrapper-*.jar"))
 
       - name: base meta
         id: base_meta
