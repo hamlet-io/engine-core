@@ -141,7 +141,7 @@ jobs:
           push: ${{ startsWith(github.ref, 'refs/tags/*') || github.ref == 'refs/heads/master' }}
           tags: ${{ steps.base_meta.outputs.tags }}
           labels: ${{ steps.base_meta.outputs.labels }}
-          target: base_package
+          target: base
           build-args: |
             wrapper_file_name=${{steps.find_wrapper_file.outputs.WRAPPER_FILE_NAME}}
 
