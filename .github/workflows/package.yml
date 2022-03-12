@@ -40,24 +40,15 @@ jobs:
           pip install hamlet
           hamlet engine add-engine-source-build
 
+      - name: create artifact tar
+        run: |
+          tar -cvzf wrapper.tar.gz .hamlet/ freemarker-wrapper/build/libs freemarker-wrapper/build/image/
+
       - name: upload build details
         uses: actions/upload-artifact@v2
         with:
-          name: build-details
-          path: .hamlet/engine_source.json
-
-      - name: upload jar
-        uses: actions/upload-artifact@v2
-        with:
-          name: jar-file
-          path: freemarker-wrapper/build/libs/freemarker-wrapper-*.jar
-
-      - name: upload bundles
-        uses: actions/upload-artifact@v2
-        with:
-          name: engine-bundle
-          path: freemarker-wrapper/build/image/
-
+          name: wrapper_artifact
+          path: wrapper.tar.gz
 
   release_tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.ref, 'refs/tags/') }}
@@ -69,13 +60,13 @@ jobs:
       - name: Get wrapper
         uses: actions/download-artifact@v2
         with:
-          name: engine-wrapper
+          name: wrapper_artifact
           path: ./
 
       - name: Create Releases
         uses: ncipollo/release-action@v1.8.6
         with:
-          artifacts: '**/*.jar'
+          artifacts: 'freemarker-wrapper/build/libs/*.jar'
           token: ${{ secrets.GITHUB_TOKEN }}
 
 
@@ -102,25 +93,13 @@ jobs:
       - name: get jar
         uses: actions/download-artifact@v2
         with:
-          name: jar-file
-          path: freemarker-wrapper/build/libs/
-
-      - name: get bundle
-        uses: actions/download-artifact@v2
-        with:
-          name: engine-bundle
-          path: freemarker-wrapper/build/image/
-
-      - name: get build details
-        uses: actions/download-artifact@v2
-        with:
-          name: build-details
-          path: .hamlet/
+          name: wrapper_artifact
+          path: ./
 
       - id: find_wrapper_file
         name: find_wrapper_file
         run: |
-          echo ::set-output NAME=WRAPPER_FILE_NAME::$(ls | grep freemarker-wrapper*.jar)
+          echo ::set-output NAME=WRAPPER_FILE_NAME::$(basename $(find freemarker-wrapper/build/libs/ -type file -name freemarker-wrapper-*.jar))
 
       - name: base meta
         id: base_meta
