@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased (2022-01-06)
+## Unreleased (2022-03-12)
 
 #### New Features
 
+* OS based images for bundled jar
 * include docker based build and refactor test
 * use .cmdb as a directory for cmdb related information
 * hide stack trace on stop exception
@@ -21,6 +22,12 @@
 * (cicd): setup github actions
 #### Fixes
 
+* find for wrapper
+* extract artifact after download
+* use tar to preserve permissions
+* tagging suffix for images
+* docker build process and pipeline
+* handle options with empty values
 * tag syntax for actions
 * default tags
 * tag naming
@@ -61,9 +68,11 @@
 * corrupting the plugin file system
 #### Refactorings
 
+* only split paramters on first =
 * (ci): quality of life updates
 #### Others
 
+* changelog bump ([#85](https://github.com/hamlet-io/engine-core/issues/85))
 * (deps): bump log4j-api from 2.17.0 to 2.17.1 in /freemarker-wrapper ([#88](https://github.com/hamlet-io/engine-core/issues/88))
 * (deps): bump log4j-core in /freemarker-wrapper ([#89](https://github.com/hamlet-io/engine-core/issues/89))
 * changelog bump ([#80](https://github.com/hamlet-io/engine-core/issues/80))
