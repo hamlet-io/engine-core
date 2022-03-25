@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (2022-03-12)
+## Unreleased (2022-03-25)
 
 #### New Features
 
@@ -72,6 +72,7 @@
 * (ci): quality of life updates
 #### Others
 
+* changelog bump ([#90](https://github.com/hamlet-io/engine-core/issues/90))
 * changelog bump ([#85](https://github.com/hamlet-io/engine-core/issues/85))
 * (deps): bump log4j-api from 2.17.0 to 2.17.1 in /freemarker-wrapper ([#88](https://github.com/hamlet-io/engine-core/issues/88))
 * (deps): bump log4j-core in /freemarker-wrapper ([#89](https://github.com/hamlet-io/engine-core/issues/89))
