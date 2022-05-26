@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased (2022-03-25)
+## Unreleased (2022-05-26)
+
+#### Others
+
+* changelog bump
+
+Full set of changes: [`2.0.0, 8.6.0...a087e41`](https://github.com/hamlet-io/engine-core/compare/2.0.0, 8.6.0...a087e41)
+
+## 2.0.0, 8.6.0 (2022-03-25)
 
 #### New Features
 
