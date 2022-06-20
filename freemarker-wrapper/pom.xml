@@ -6,7 +6,7 @@
 
     <artifactId>freemarker-wrapper</artifactId>
     <groupId>io.hamlet</groupId>
-    <version>1.15.1</version>
+    <version>1.16.0-rc1</version>
     <build>
         <plugins>
             <plugin>
@@ -52,6 +52,18 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
@@ -129,6 +141,11 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.6.0-M1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.jimblackler.jsonschemafriend</groupId>
+            <artifactId>core</artifactId>
+            <version>0.11.1</version>
         </dependency>
 
     </dependencies>
