@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased (2022-05-26)
+## Unreleased (2022-10-13)
 
 #### Others
 
+* (deps): bump jackson-databind from 2.10.5.1 to 2.12.6.1 in /freemarker-wrapper ([#99](https://github.com/hamlet-io/engine-core/issues/99))
+* changelog bump
 * changelog bump
 
-Full set of changes: [`2.0.0, 8.6.0...a087e41`](https://github.com/hamlet-io/engine-core/compare/2.0.0, 8.6.0...a087e41)
+Full set of changes: [`2.0.0, 8.6.0...bd9921f`](https://github.com/hamlet-io/engine-core/compare/2.0.0, 8.6.0...bd9921f)
 
 ## 2.0.0, 8.6.0 (2022-03-25)
 
