@@ -4,7 +4,7 @@ import io.hamlet.freemarkerwrapper.files.layers.Layer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 import java.util.HashSet;
 import java.util.Set;
 
