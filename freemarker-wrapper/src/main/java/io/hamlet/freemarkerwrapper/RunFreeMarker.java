@@ -4,6 +4,7 @@ import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.core.Environment;
 import freemarker.core.StopException;
+import freemarker.core.JSONCFormat;
 import freemarker.template.*;
 import io.hamlet.freemarkerwrapper.files.adapters.JsonValueWrapper;
 import io.hamlet.freemarkerwrapper.files.methods.cp.layer.cmdb.CpCMDBMethod;
@@ -46,7 +47,7 @@ public class RunFreeMarker {
     private static Map<String, Object> input = null;
     private static Map<String, Object> rawInput = null;
     private static Configuration cfg;
-    private static final Version freemarkerVersion = Configuration.VERSION_2_3_31;
+    private static final Version freemarkerVersion = Configuration.VERSION_2_3_32;
     private static final String GENERATION_LOG_LEVEL_VAR_NAME = "GENERATION_LOG_LEVEL";
 
     public static void main(String[] args) {
@@ -60,6 +61,12 @@ public class RunFreeMarker {
             cfg.setObjectWrapper(new JsonValueWrapper(cfg.getIncompatibleImprovements()));
             cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
             cfg.setLogTemplateExceptions(false);
+
+            // Default formatting to Computer based JSON syntax
+            cfg.setCFormat(JSONCFormat.INSTANCE);
+            cfg.setNumberFormat("c");
+            cfg.setBooleanFormat("c");
+
             input = new HashMap<String, Object>();
             rawInput = new HashMap<String, Object>();
 
