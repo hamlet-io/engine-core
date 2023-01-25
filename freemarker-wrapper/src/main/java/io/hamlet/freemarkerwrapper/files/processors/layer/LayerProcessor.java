@@ -15,7 +15,7 @@ import io.hamlet.freemarkerwrapper.files.processors.Processor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.json.*;
+import jakarta.json.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;

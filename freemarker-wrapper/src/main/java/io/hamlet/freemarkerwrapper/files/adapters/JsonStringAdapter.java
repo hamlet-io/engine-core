@@ -2,7 +2,7 @@ package io.hamlet.freemarkerwrapper.files.adapters;
 
 import freemarker.template.*;
 
-import javax.json.JsonString;
+import jakarta.json.JsonString;
 
 public class JsonStringAdapter extends WrappingTemplateModel implements TemplateScalarModel,
         AdapterTemplateModel {

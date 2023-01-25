@@ -9,7 +9,7 @@ import io.hamlet.freemarkerwrapper.files.meta.layer.LayerMeta;
 import io.hamlet.freemarkerwrapper.files.methods.LayerMethod;
 import io.hamlet.freemarkerwrapper.files.processors.layer.LayerProcessor;
 
-import javax.json.JsonArray;
+import jakarta.json.JsonArray;
 import java.io.IOException;
 
 public abstract class GetLayerListMethod extends LayerMethod {
