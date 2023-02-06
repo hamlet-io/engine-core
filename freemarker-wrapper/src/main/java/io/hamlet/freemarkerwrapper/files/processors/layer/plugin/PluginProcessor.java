@@ -9,9 +9,9 @@ import io.hamlet.freemarkerwrapper.files.meta.layer.LayerMeta;
 import io.hamlet.freemarkerwrapper.files.meta.layer.plugin.PluginMeta;
 import io.hamlet.freemarkerwrapper.files.processors.layer.LayerProcessor;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObjectBuilder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
