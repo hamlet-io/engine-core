@@ -1,12 +1,16 @@
 # Changelog
 
-## Unreleased (2023-01-25)
+## Unreleased (2023-02-07)
 
+#### New Features
+
+* update to latest freemarker ([#102](https://github.com/hamlet-io/engine-core/issues/102))
 #### Others
 
+* changelog bump ([#100](https://github.com/hamlet-io/engine-core/issues/100))
 * package updates ([#101](https://github.com/hamlet-io/engine-core/issues/101))
 
-Full set of changes: [`8.8.0...c996e68`](https://github.com/hamlet-io/engine-core/compare/8.8.0...c996e68)
+Full set of changes: [`8.8.0...37e2151`](https://github.com/hamlet-io/engine-core/compare/8.8.0...37e2151)
 
 ## 8.8.0 (2022-10-13)
 
