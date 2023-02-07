@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 
 public class GetCMDBTreeMethodTest {
 
-    private static final Version freemarkerVersion = Configuration.VERSION_2_3_31;
+    private static final Version freemarkerVersion = Configuration.VERSION_2_3_32;
     private static Configuration cfg;
     private static Map<String, Object> input = null;
 
@@ -385,6 +385,11 @@ public class GetCMDBTreeMethodTest {
     private final String setExitStatus = "[#ftl]\n" +
             "\n" +
             "[#assign exit = setExitStatus(%s)]\n" +
+            "\n";
+
+    private final String printNull = "[#ftl]\n" +
+            "\n" +
+            "Non-assigned variable ${nullVariable?cn}\n" +
             "\n";
 
     private final String stopException = "[#ftl]\n" +
@@ -2282,6 +2287,27 @@ public class GetCMDBTreeMethodTest {
         freeMarkerTemplate.process(input, consoleWriter);
         Assert.assertTrue(statusCode.contentEquals(System.getProperty(StatusProcessor.existStatusVariableName)));
         System.clearProperty(StatusProcessor.existStatusVariableName);
+    }
+
+    @Test
+    public void testPrintNullVariable() throws IOException, TemplateException {
+        input = new HashMap<>();
+        input.put(SetExitStatusMethod.METHOD_NAME, new SetExitStatusMethod());
+        String fileName = templatesPath.concat("/file.ftl");
+        Files.write(Paths.get(fileName), (printNull).getBytes());
+        cfg.setTemplateLoader(new FileTemplateLoader(new File("/")));
+        cfg.setTemplateExceptionHandler(new WrapperTemplateExceptionHandler());
+        Template freeMarkerTemplate = cfg.getTemplate(fileName);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Writer consoleWriter = new OutputStreamWriter(byteArrayOutputStream);
+
+        Environment env = freeMarkerTemplate.createProcessingEnvironment(input, consoleWriter);
+        try {
+            freeMarkerTemplate.process(input, consoleWriter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
