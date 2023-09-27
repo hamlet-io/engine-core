@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
             --issue-url "https://github.com/${REPO}/issues/{id}"
 
       - name: change log PR
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v5
         with:
           commit-message: "chore: changelog bump"
           delete-branch: true
