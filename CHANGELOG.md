@@ -1,9 +1,10 @@
 # Changelog
 
-## latest (2024-03-25)
+## latest (2024-03-27)
 
 #### Others
 
+* update changelog ([#104](https://github.com/hamlet-io/engine-core/issues/104))
 * update github actions versions ([#106](https://github.com/hamlet-io/engine-core/issues/106))
 
 Full set of changes: [`8.9.0...latest`](https://github.com/hamlet-io/engine-core/compare/8.9.0...latest)
