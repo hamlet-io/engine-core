@@ -1,16 +1,25 @@
 # Changelog
 
-## Unreleased (2023-02-07)
+## latest (2024-03-25)
+
+#### Others
+
+* update github actions versions ([#106](https://github.com/hamlet-io/engine-core/issues/106))
+
+Full set of changes: [`8.9.0...latest`](https://github.com/hamlet-io/engine-core/compare/8.9.0...latest)
+
+## 8.9.0 (2023-06-16)
 
 #### New Features
 
 * update to latest freemarker ([#102](https://github.com/hamlet-io/engine-core/issues/102))
 #### Others
 
+* changelog bump ([#103](https://github.com/hamlet-io/engine-core/issues/103))
 * changelog bump ([#100](https://github.com/hamlet-io/engine-core/issues/100))
 * package updates ([#101](https://github.com/hamlet-io/engine-core/issues/101))
 
-Full set of changes: [`8.8.0...37e2151`](https://github.com/hamlet-io/engine-core/compare/8.8.0...37e2151)
+Full set of changes: [`8.8.0...8.9.0`](https://github.com/hamlet-io/engine-core/compare/8.8.0...8.9.0)
 
 ## 8.8.0 (2022-10-13)
 
